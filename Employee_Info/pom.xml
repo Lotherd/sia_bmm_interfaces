@@ -39,6 +39,30 @@
       <version>6.0-6</version>
       <scope>provided</scope>
     </dependency>
+    
+    <!-- BouncyCastle for PGP encryption -->
+    <dependency>
+      <groupId>org.bouncycastle</groupId>
+      <artifactId>bcpg-jdk15on</artifactId>
+      <version>1.70</version>
+    </dependency>
+    <dependency>
+      <groupId>org.bouncycastle</groupId>
+      <artifactId>bcprov-jdk15on</artifactId>
+      <version>1.70</version>
+    </dependency>
+    <dependency>
+    <groupId>commons-codec</groupId>
+    <artifactId>commons-codec</artifactId>
+    <version>1.15</version> <!-- Use the latest version available -->
+	</dependency>
+    
+    <!-- Apache Commons IO -->
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <version>2.11.0</version>
+    </dependency>
 
     <!-- to test with TomEE and Arquillian
     <dependency>
@@ -81,6 +105,11 @@
       <scope>test</scope>
     </dependency>
     -->
+    <dependency>
+    	<groupId>Authorization_Details</groupId>
+    	<artifactId>Authorization_Details</artifactId>
+    	<version>0.0.1-SNAPSHOT</version>
+    </dependency>
   </dependencies>
 
   <build>
@@ -97,10 +126,12 @@
           <version>3.1</version>
         </plugin>
         <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-surefire-plugin</artifactId>
-          <version>2.18.1</version>
-        </plugin>
+  			<groupId>org.apache.maven.plugins</groupId>
+  			<artifactId>maven-surefire-plugin</artifactId>
+  				<configuration>
+    				<argLine>--add-opens java.base/java.util=ALL-UNNAMED</argLine>
+  				</configuration>
+		</plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-war-plugin</artifactId>
@@ -124,9 +155,13 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <configuration>
-          <source>1.7</source>
-          <target>1.7</target>
-        </configuration>
+    		<source>1.8</source>
+    		<target>1.8</target>
+    		<compilerArgs>
+      		<arg>--add-opens</arg>
+      		<arg>java.base/java.util=ALL-UNNAMED</arg>
+    		</compilerArgs>
+  		</configuration>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -144,6 +179,7 @@
         <artifactId>tomee-maven-plugin</artifactId>
         <configuration>
           <context>ROOT</context>
+          <args>--add-opens java.base/java.util=ALL-UNNAMED</args>
         </configuration>
       </plugin>
       <plugin>
@@ -174,6 +210,7 @@
         </dependencies>
       </plugin>
     </plugins>
+    <finalName>EmployeeInfo_Service</finalName>
   </build>
 
   <repositories>

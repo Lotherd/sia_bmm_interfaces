@@ -22,7 +22,7 @@ public class Start
 
 	private ScheduledExecutorService scheduledServ;
 	RunAble timer = null;
-	Logger logger = LogManager.getLogger("EmployeeInfo_01");
+	Logger logger = LogManager.getLogger("EmployeeInfo_I01");
 	
 	@PostConstruct
 	public void start()

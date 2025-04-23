@@ -38,5 +38,67 @@
 			<attribute name="owner.project.facets" value="jboss.m2"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry kind="lib" path="C:/Users/Ernesto.Rodriguez/.m2/repository/org/bouncycastle/bcprov-ext-jdk15on/1.70/bcprov-ext-jdk15on-1.70.jar" sourcepath="C:/Users/Ernesto.Rodriguez/.m2/repository/org/bouncycastle/bcprov-ext-jdk15on/1.70/bcprov-ext-jdk15on-1.70-sources.jar">
+		<attributes>
+			<attribute name="maven.pomderived" value="true"/>
+			<attribute name="org.eclipse.jst.component.archivename" value="bcprov-ext-jdk15on-1.70.jar"/>
+			<attribute name="maven.groupId" value="org.bouncycastle"/>
+			<attribute name="maven.artifactId" value="bcprov-ext-jdk15on"/>
+			<attribute name="maven.version" value="1.70"/>
+			<attribute name="maven.scope" value="compile"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="C:/Users/Ernesto.Rodriguez/.m2/repository/commons-codec/commons-codec/1.15/commons-codec-1.15.jar" sourcepath="C:/Users/Ernesto.Rodriguez/.m2/repository/commons-codec/commons-codec/1.15/commons-codec-1.15-sources.jar">
+		<attributes>
+			<attribute name="maven.pomderived" value="true"/>
+			<attribute name="org.eclipse.jst.component.archivename" value="commons-codec-1.15.jar"/>
+			<attribute name="maven.groupId" value="commons-codec"/>
+			<attribute name="maven.artifactId" value="commons-codec"/>
+			<attribute name="maven.version" value="1.15"/>
+			<attribute name="maven.scope" value="compile"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="C:/Users/Ernesto.Rodriguez/.m2/repository/org/bouncycastle/bcpg-jdk15on/1.70/bcpg-jdk15on-1.70.jar" sourcepath="C:/Users/Ernesto.Rodriguez/.m2/repository/org/bouncycastle/bcpg-jdk15on/1.70/bcpg-jdk15on-1.70-sources.jar">
+		<attributes>
+			<attribute name="maven.pomderived" value="true"/>
+			<attribute name="org.eclipse.jst.component.archivename" value="bcpg-jdk15on-1.70.jar"/>
+			<attribute name="maven.groupId" value="org.bouncycastle"/>
+			<attribute name="maven.artifactId" value="bcpg-jdk15on"/>
+			<attribute name="maven.version" value="1.70"/>
+			<attribute name="maven.scope" value="compile"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="src" path="/PersonnelInfo"/>
+	<classpathentry kind="lib" path="/Trax_Interface/lib/opencsv-2.3.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Ernesto.Rodriguez/.m2/repository/com/opencsv/opencsv/5.6/opencsv-5.6.jar" sourcepath="C:/Users/Ernesto.Rodriguez/.m2/repository/com/opencsv/opencsv/5.6/opencsv-5.6-sources.jar">
+		<attributes>
+			<attribute name="maven.pomderived" value="true"/>
+			<attribute name="org.eclipse.jst.component.archivename" value="opencsv-5.6.jar"/>
+			<attribute name="maven.groupId" value="com.opencsv"/>
+			<attribute name="maven.artifactId" value="opencsv"/>
+			<attribute name="maven.version" value="5.6"/>
+			<attribute name="maven.scope" value="compile"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="C:/Users/Ernesto.Rodriguez/.m2/repository/commons-io/commons-io/2.6/commons-io-2.6.jar" sourcepath="C:/Users/Ernesto.Rodriguez/.m2/repository/commons-io/commons-io/2.6/commons-io-2.6-sources.jar">
+		<attributes>
+			<attribute name="maven.pomderived" value="true"/>
+			<attribute name="org.eclipse.jst.component.archivename" value="commons-io-2.6.jar"/>
+			<attribute name="maven.groupId" value="commons-io"/>
+			<attribute name="maven.artifactId" value="commons-io"/>
+			<attribute name="maven.version" value="2.6"/>
+			<attribute name="maven.scope" value="compile"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="C:/Users/Ernesto.Rodriguez/.m2/repository/org/apache/commons/commons-email/1.6.0/commons-email-1.6.0.jar" sourcepath="C:/Users/Ernesto.Rodriguez/.m2/repository/org/apache/commons/commons-email/1.6.0/commons-email-1.6.0-sources.jar">
+		<attributes>
+			<attribute name="maven.pomderived" value="true"/>
+			<attribute name="org.eclipse.jst.component.archivename" value="commons-email-1.6.0.jar"/>
+			<attribute name="maven.groupId" value="org.apache.commons"/>
+			<attribute name="maven.artifactId" value="commons-email"/>
+			<attribute name="maven.version" value="1.6.0"/>
+			<attribute name="maven.scope" value="compile"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

@@ -2,14 +2,12 @@ package trax.aero.Encryption;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.Security;
-import java.security.Key;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -20,10 +18,10 @@ import javax.crypto.spec.SecretKeySpec;
 
 import org.apache.commons.codec.binary.Base64;
 
-public class Encryption
-{
+public class Encryption {
+	
 	private static final String encryptionKey = "i/Mfi3u3jHFR0OSapCIdtA==";
-
+	
 	/**
 	 * encrypt/decrypt a string using BouncyCastleProvider
 	 * 
@@ -38,6 +36,7 @@ public class Encryption
 	 * @param encrypt - true: encryption encrypt - false: decryption
 	 * 
 	 */
+	
 	public static String cryptoControl(String str, boolean encrypt)
 			throws NoSuchAlgorithmException, NoSuchProviderException,
 			NoSuchPaddingException, InvalidKeyException, ShortBufferException,
@@ -81,7 +80,7 @@ public class Encryption
 		}
 		return str;
 	}
-
+	
 	public static void encryptFile(File inputFile, File outputFile)
 			throws NoSuchAlgorithmException, NoSuchProviderException,
 			NoSuchPaddingException, InvalidKeyException, ShortBufferException,
@@ -123,4 +122,5 @@ public class Encryption
 		outputStream.close();
 
 	}
+
 }

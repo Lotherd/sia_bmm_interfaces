@@ -21,7 +21,6 @@ import java.util.Iterator;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import org.apache.commons.io.IOUtils;
 import org.bouncycastle.bcpg.ArmoredOutputStream;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openpgp.PGPCompressedData;
@@ -48,10 +47,7 @@ import org.bouncycastle.util.io.Streams;
 
 import trax.aero.logger.LogManager;
 
-
-
 public final class PGPEncryption {
-
 	private static final String encryptionPassphrase = System.getProperty("passphrase"); 
 	private static final String encryptionFile =System.getProperty("keyFile");
 	
@@ -281,9 +277,5 @@ public final class PGPEncryption {
 		public static String getEncryptionfile() {
 			return encryptionFile;
 		}
-	    
-	    
-	    
-	    
 
 }
