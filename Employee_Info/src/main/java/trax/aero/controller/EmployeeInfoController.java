@@ -14,7 +14,7 @@ import org.apache.commons.mail.SimpleEmail;
 
 import trax.aero.logger.LogManager;
 
-public class EmployeInfoController {
+public class EmployeeInfoController {
 	
 	static String errors = "";
 	static Logger logger = LogManager.getLogger("EmployeeInfo_I01");
@@ -24,7 +24,7 @@ public class EmployeInfoController {
 	static String port = System.getProperty("fromPort");
 	static String toEmail = System.getProperty("EmployeeInfo_toEmail");
 	
-	public EmployeInfoController()
+	public EmployeeInfoController()
 	{
 		
 	}
