@@ -62,7 +62,7 @@ public class RunAble implements Runnable {
 	};
 	
 	public RunAble() {
-		factory = Persistence.createEntityManagerFactory("ImportDS");
+		factory = Persistence.createEntityManagerFactory("TraxStandaloneDS");
 		data = new PersonalInfoData(factory);
 	}
 	
