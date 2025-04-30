@@ -29,8 +29,8 @@ import com.opencsv.CSVReaderBuilder;
 import com.opencsv.CSVWriter;
 
 import trax.aero.Encryption.PGPEncryption;
-import trax.aero.controller.PersonalInfoController;
-import trax.aero.data.PersonalInfoData;
+import trax.aero.controller.EmployeeInfoController;
+import trax.aero.data.EmployeeInfoData;
 import trax.aero.logger.LogManager;
 import trax.aero.pojo.EmployeeInfo;
 
@@ -40,7 +40,7 @@ public class RunAble implements Runnable {
 	
 	//Variables
 	Logger logger = LogManager.getLogger("EmployeeInfo_I01");
-	PersonalInfoData data = null;
+	EmployeeInfoData data = null;
 	EntityManagerFactory factory;
 	private static File inputFiles[],inputFolder  ;
 	public static List<EmployeeInfo> employeesFailure  = null;
@@ -62,8 +62,8 @@ public class RunAble implements Runnable {
 	};
 	
 	public RunAble() {
-		factory = Persistence.createEntityManagerFactory("TraxStandaloneDS");
-		data = new PersonalInfoData(factory);
+		factory = Persistence.createEntityManagerFactory("TraxESD");
+		data = new EmployeeInfoData();
 	}
 	
 	private String insertFile(File file, String outcome) 
@@ -71,7 +71,7 @@ public class RunAble implements Runnable {
 		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyyMMdd");
 		LocalDateTime  currentDateTime = LocalDateTime.now();
 		
-		File todayFolder = new File(System.getProperty("PersonalInfo_compFiles")+ File.separator + dtf.format(currentDateTime));
+		File todayFolder = new File(System.getProperty("EmployeeInfo_compFiles")+ File.separator + dtf.format(currentDateTime));
 		if (!todayFolder.isDirectory())			
 			todayFolder.mkdir();
 		
@@ -206,10 +206,10 @@ public class RunAble implements Runnable {
         	data.add(arr);
         }
         
-		File compFolder = new File(System.getProperty("PersonalInfo_compFiles"));
+		File compFolder = new File(System.getProperty("EmployeeInfo_compFiles"));
 		if (!compFolder.isDirectory())
 		compFolder.mkdir();
-		File todayFolder = new File(System.getProperty("PersonalInfo_compFiles")+ File.separator + dtf.format(currentDateTime));
+		File todayFolder = new File(System.getProperty("EmployeeInfo_compFiles")+ File.separator + dtf.format(currentDateTime));
 		if (!todayFolder.isDirectory())
 		todayFolder.mkdir();
 	
@@ -235,7 +235,7 @@ public class RunAble implements Runnable {
 		try 
 		{
 			//setting up variables
-			final String process = System.getProperty("PersonalInfo_fileLoc");
+			final String process = System.getProperty("EmployeeInfo_fileLoc");
 			inputFolder = new File(process);
 			String exectued = "OK",outcome = "PROCESSED_";
 			ArrayList<EmployeeInfo> employees = new ArrayList<EmployeeInfo>();
@@ -267,16 +267,16 @@ public class RunAble implements Runnable {
 						file.delete();	
 					
 					}catch(Exception e){
-						PersonalInfoController.addError(e.toString());
+						EmployeeInfoController.addError(e.toString());
 						outcome = "FAILURE_";
 						throw new Exception("Failed to read file");
 						
 					}
 				}catch(Exception e) {
-					PersonalInfoController.addError(e.toString());
+					EmployeeInfoController.addError(e.toString());
 					String output = insertFile(file,outcome);
-					PersonalInfoController.addError("Failed File "  + output);
-					PersonalInfoController.sendEmailFile(file);
+					EmployeeInfoController.addError("Failed File "  + output);
+					EmployeeInfoController.sendEmailFile(file);
 					logger.severe(e.toString());
 				}
 			}
@@ -429,7 +429,7 @@ public class RunAble implements Runnable {
 						}   
 						 
 					}catch(Exception e){
-						PersonalInfoController.addError(e.toString());
+						EmployeeInfoController.addError(e.toString());
 						 
 						outcome = "FAILURE_";
 						throw new Exception("Failed to read file");
@@ -474,8 +474,8 @@ public class RunAble implements Runnable {
 				{
 					e.printStackTrace();
 					logger.severe(e.toString());
-					PersonalInfoController.addError(e.toString());
-					PersonalInfoController.sendEmailFile(file);
+					EmployeeInfoController.addError(e.toString());
+					EmployeeInfoController.sendEmailFile(file);
 					//insertFile(file,"FAILURE_");
 					
 					

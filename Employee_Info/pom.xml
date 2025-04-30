@@ -15,8 +15,10 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>Employee_Info</groupId>
@@ -29,18 +31,31 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <version.openjpa>2.4.2</version.openjpa>
   </properties>
 
   <dependencies>
+    <!-- Java EE API del contenedor -->
     <dependency>
       <groupId>org.apache.openejb</groupId>
       <artifactId>javaee-api</artifactId>
       <version>6.0-6</version>
       <scope>provided</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.hibernate</groupId>
+          <artifactId>hibernate-core</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
-    
-    <!-- BouncyCastle for PGP encryption -->
+
+    <!-- JPA API -->
+    <dependency>
+      <groupId>org.eclipse.persistence</groupId>
+      <artifactId>javax.persistence</artifactId>
+      <version>2.2.1</version>
+    </dependency>
+
+    <!-- BouncyCastle para PGP -->
     <dependency>
       <groupId>org.bouncycastle</groupId>
       <artifactId>bcpg-jdk15on</artifactId>
@@ -52,11 +67,11 @@
       <version>1.70</version>
     </dependency>
     <dependency>
-    <groupId>commons-codec</groupId>
-    <artifactId>commons-codec</artifactId>
-    <version>1.15</version> <!-- Use the latest version available -->
-	</dependency>
-    
+      <groupId>commons-codec</groupId>
+      <artifactId>commons-codec</artifactId>
+      <version>1.15</version>
+    </dependency>
+
     <!-- Apache Commons IO -->
     <dependency>
       <groupId>commons-io</groupId>
@@ -64,60 +79,22 @@
       <version>2.11.0</version>
     </dependency>
 
-    <!-- to test with TomEE and Arquillian
+    <!-- OpenCSV -->
     <dependency>
-      <groupId>org.apache.openejb</groupId>
-      <artifactId>arquillian-tomee-remote</artifactId>
-      <version>1.7.5</version>
-      <scope>test</scope>
+      <groupId>com.opencsv</groupId>
+      <artifactId>opencsv</artifactId>
+      <version>5.7.1</version>
     </dependency>
-    <dependency>
-      <groupId>org.jboss.arquillian.junit</groupId>
-      <artifactId>arquillian-junit-container</artifactId>
-      <version>1.1.5.Final</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.11</version>
-      <scope>test</scope>
-    </dependency>
-    -->
 
-    <!-- to test with OpenEJB embedded and Arquillian
+    <!-- Apache Commons Email -->
     <dependency>
-      <groupId>org.apache.openejb</groupId>
-      <artifactId>arquillian-openejb-embedded-4</artifactId>
-      <version>4.7.5</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.jboss.arquillian.junit</groupId>
-      <artifactId>arquillian-junit-container</artifactId>
-      <version>1.1.5.Final</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.11</version>
-      <scope>test</scope>
-    </dependency>
-    -->
-    <dependency>
-    	<groupId>Authorization_Details</groupId>
-    	<artifactId>Authorization_Details</artifactId>
-    	<version>0.0.1-SNAPSHOT</version>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-email</artifactId>
+      <version>1.5</version>
     </dependency>
   </dependencies>
 
   <build>
-
-    <!--
-    Defines plugin versions for this project
-    and any modules that may be added
-    -->
     <pluginManagement>
       <plugins>
         <plugin>
@@ -126,27 +103,21 @@
           <version>3.1</version>
         </plugin>
         <plugin>
-  			<groupId>org.apache.maven.plugins</groupId>
-  			<artifactId>maven-surefire-plugin</artifactId>
-  				<configuration>
-    				<argLine>--add-opens java.base/java.util=ALL-UNNAMED</argLine>
-  				</configuration>
-		</plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>2.22.2</version>
+        </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-war-plugin</artifactId>
-          <version>2.6</version>
+          <version>3.3.2</version>
         </plugin>
         <plugin>
           <groupId>org.apache.openejb.maven</groupId>
           <artifactId>tomee-maven-plugin</artifactId>
           <version>1.7.5</version>
         </plugin>
-        <plugin>
-          <groupId>org.apache.openjpa</groupId>
-          <artifactId>openjpa-maven-plugin</artifactId>
-          <version>${version.openjpa}</version>
-        </plugin>
+        <!-- openjpa-maven-plugin eliminado -->
       </plugins>
     </pluginManagement>
 
@@ -154,19 +125,19 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.8.1</version>
         <configuration>
-    		<source>1.8</source>
-    		<target>1.8</target>
-    		<compilerArgs>
-      		<arg>--add-opens</arg>
-      		<arg>java.base/java.util=ALL-UNNAMED</arg>
-    		</compilerArgs>
-  		</configuration>
+          <source>1.8</source>
+          <target>1.8</target>
+        </configuration>
       </plugin>
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.22.2</version>
       </plugin>
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-war-plugin</artifactId>
@@ -174,42 +145,16 @@
           <failOnMissingWebXml>false</failOnMissingWebXml>
         </configuration>
       </plugin>
+
       <plugin>
         <groupId>org.apache.openejb.maven</groupId>
         <artifactId>tomee-maven-plugin</artifactId>
         <configuration>
           <context>ROOT</context>
-          <args>--add-opens java.base/java.util=ALL-UNNAMED</args>
         </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.openjpa</groupId>
-        <artifactId>openjpa-maven-plugin</artifactId>
-        <configuration>
-          <includes>**/entities/*.class</includes>
-          <excludes>**/entities/XML*.class</excludes>
-          <addDefaultConstructor>true</addDefaultConstructor>
-          <enforcePropertyRestrictions>true</enforcePropertyRestrictions>
-        </configuration>
-        <executions>
-          <execution>
-            <id>enhancer</id>
-            <phase>process-classes</phase>
-            <goals>
-              <goal>enhance</goal>
-            </goals>
-          </execution>
-        </executions>
-        <dependencies>
-          <dependency>
-            <groupId>org.apache.openjpa</groupId>
-            <artifactId>openjpa</artifactId>
-            <!-- Set this version to be the same as the version used in your runtime -->
-            <version>${version.openjpa}</version>
-          </dependency>
-        </dependencies>
       </plugin>
     </plugins>
+
     <finalName>EmployeeInfo_Service</finalName>
   </build>
 
@@ -220,5 +165,4 @@
       <url>https://repository.apache.org/content/groups/snapshots/</url>
     </repository>
   </repositories>
-
 </project>

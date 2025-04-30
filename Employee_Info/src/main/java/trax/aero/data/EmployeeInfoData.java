@@ -4,13 +4,18 @@ import java.math.BigDecimal;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Date;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.temporal.ChronoField;
 import java.util.logging.Logger;
 
 import javax.persistence.EntityManager;
@@ -18,6 +23,7 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
 import javax.persistence.Persistence;
 import javax.persistence.Query;
+import javax.persistence.TemporalType;
 
 import trax.aero.controller.EmployeeInfoController;
 import trax.aero.exception.CustomizeHandledException;
@@ -37,7 +43,7 @@ public class EmployeeInfoData {
  static Logger logger = LogManager.getLogger("EmployeeInfo_I01");
     
  public EmployeeInfoData() {
-        factory = Persistence.createEntityManagerFactory("TraxStandaloneDS");
+        factory = Persistence.createEntityManagerFactory("TraxESD");
         em = factory.createEntityManager();
         
         try {
@@ -57,6 +63,14 @@ public class EmployeeInfoData {
     public Connection getCon() {
         return con;
     }
+    
+    // Formatter to assign 00:00 when time-stamp is missing
+    private static final DateTimeFormatter CSV_FMT = new DateTimeFormatterBuilder()
+        .appendPattern("M/d/yyyy")
+        .optionalStart().appendPattern(" H:mm").optionalEnd()
+        .parseDefaulting(ChronoField.HOUR_OF_DAY, 0)
+        .parseDefaulting(ChronoField.MINUTE_OF_HOUR, 0)
+        .toFormatter();
     
     /**
      * Searches for an employee in the database and takes appropriate action
@@ -130,7 +144,7 @@ public class EmployeeInfoData {
         
         // Validate required fields
         if (!checkMinValue(e)) {
-            executed = "Cannot insert Employee due to missing required fields: employeeId or relationCode";
+        	executed = "Cannot insert Employee due to missing required fields: employeeId or relationCode";
             logger.severe(executed);
             EmployeeInfoController.addError(executed);
             return executed;
@@ -139,6 +153,21 @@ public class EmployeeInfoData {
         EntityTransaction transaction = null;
         
         try {
+        	
+        	LocalDateTime birthLdt = (e.getBirthdate() != null && !e.getBirthdate().isEmpty())
+                    ? LocalDateTime.parse(e.getBirthdate(), CSV_FMT)
+                    : null;
+                LocalDate birthDate = birthLdt != null ? birthLdt.toLocalDate() : null;
+                LocalDateTime hiredLdt = (e.getDateHired() != null && !e.getDateHired().isEmpty())
+                    ? LocalDateTime.parse(e.getDateHired(), CSV_FMT)
+                    : null;
+                LocalDateTime termLdt = (e.getDateTerminated() != null && !e.getDateTerminated().isEmpty())
+                    ? LocalDateTime.parse(e.getDateTerminated(), CSV_FMT)
+                    : null;
+                LocalDateTime creatLdt = (e.getCreatedDate() != null && !e.getCreatedDate().isEmpty())
+                    ? LocalDateTime.parse(e.getCreatedDate(), CSV_FMT)
+                    : null;
+            
             // Begin transaction
             transaction = em.getTransaction();
             if (!transaction.isActive()) {
@@ -148,20 +177,18 @@ public class EmployeeInfoData {
             // Prepare the SQL insert query with named parameters
             Query insertQuery = em.createNativeQuery(
             		"INSERT INTO relation_master (" +
-            		        "  relation_code, relation_transaction, name, employee_id, first_name, last_name," +
-            		        "  related_location, position, department, department_description, division," +
-            		        "  division_description, mail_phone, mail_email, date_of_birth, date_hired," +
-            		        "  date_terminated, profile, company_name, cost_center, status," +
-            		        "  created_by, created_date, modified_by, modified_date, allow_issue_to" +
-            		        ") VALUES (" +
-            		        "  :relationCode, 'EMPLOYEE', :fullName, :employeeId, :firstName, :lastName," +
-            		        "  :relatedLocation, :position, :department, :departmentDescription, :division," +
-            		        "  :divisionDescription, :mailPhone, :mailEmail," +
-            		        "  TO_DATE(:birthdate, 'YYYY-MM-DD'), TO_DATE(:dateHired, 'YYYY-MM-DD')," +
-            		        "  TO_DATE(:dateTerminated, 'YYYY-MM-DD'), :profile, :companyName, :costCenter," +
-            		        "  :status, 'TRAX_IFACE_BMM', :createdDate, 'TRAX_IFACE_BMM', SYSDATE, 'YES'" +
-            		        ")"
-            		    );
+            	            " relation_code, relation_transaction, name, employee_id, first_name, last_name," +
+            	            " related_location, position, department, division," +
+            	            " mail_phone, mail_email, date_of_birth, date_hired, date_terminated," +
+            	            " gst_gl_company, cost_center, status, created_by, created_date," +
+            	            " modified_by, modified_date, allow_issue_to) " +
+            	            "VALUES (" +
+            	            " :relationCode, 'EMPLOYEE', :fullName, :employeeId, :firstName, :lastName," +
+            	            " :relatedLocation, :position, :department, :division," +
+            	            " :mailPhone, :mailEmail, :birthdate, :dateHired, :dateTerminated," +
+            	            " :companyName, :costCenter, :status, 'TRAX_IFACE', :createdDate," +
+            	            " 'TRAX_IFACE', SYSDATE, 'YES')"
+            	        );
             
             // Set parameters, handling null values appropriately
             insertQuery.setParameter("relationCode", e.getRelationCode());
@@ -172,18 +199,11 @@ public class EmployeeInfoData {
             insertQuery.setParameter("relatedLocation", e.getRelatedLocation() != null ? e.getRelatedLocation() : "");
             insertQuery.setParameter("position", e.getPosition() != null ? e.getPosition() : "");
             insertQuery.setParameter("department", e.getDepartment() != null ? e.getDepartment() : "");
-            insertQuery.setParameter("departmentDescription", e.getDepartmentDescription() != null ? e.getDepartmentDescription() : "");
+            //insertQuery.setParameter("departmentDescription", e.getDepartmentDescription() != null ? e.getDepartmentDescription() : "");
             insertQuery.setParameter("division", e.getDivision() != null ? e.getDivision() : "");
-            insertQuery.setParameter("divisionDescription", e.getDivisionDescription() != null ? e.getDivisionDescription() : "");
+            //insertQuery.setParameter("divisionDescription", e.getDivisionDescription() != null ? e.getDivisionDescription() : "");
             insertQuery.setParameter("mailPhone", e.getMailPhone() != null ? e.getMailPhone() : "");
             insertQuery.setParameter("mailEmail", e.getMailEmail() != null ? e.getMailEmail() : "");
-            
-            // Handle date parameters
-            insertQuery.setParameter("birthdate", e.getBirthdate() != null ? e.getBirthdate() : null);
-            insertQuery.setParameter("dateHired", e.getDateHired() != null ? e.getDateHired() : null);
-            insertQuery.setParameter("dateTerminated", e.getDateTerminated() != null ? e.getDateTerminated() : null);
-            
-            insertQuery.setParameter("profile", e.getProfile() != null ? e.getProfile() : "");
             insertQuery.setParameter("companyName", e.getCompanyName() != null ? e.getCompanyName() : "");
             insertQuery.setParameter("costCenter", e.getCostCode() != null ? e.getCostCode() : "");
             // Convert status code (1=ACTIVE, other=INACTIVE) or default to ACTIVE
@@ -192,7 +212,32 @@ public class EmployeeInfoData {
             	        ? (e.getStatus().equals("1") ? "ACTIVE" : "INACTIVE")
             	        : "ACTIVE"
             	);
-            insertQuery.setParameter("createdDate", e.getCreatedDate() != null ? e.getCreatedDate() : "");
+            
+            
+            // Date binds with TemporalType overload for nulls
+            if (birthDate != null) {
+                insertQuery.setParameter("birthdate", Date.valueOf(birthDate));
+            } else {
+                insertQuery.setParameter("birthdate", (java.util.Date) null, TemporalType.DATE);
+            }
+
+            if (hiredLdt != null) {
+                insertQuery.setParameter("dateHired", Timestamp.valueOf(hiredLdt));
+            } else {
+                insertQuery.setParameter("dateHired", (java.util.Date) null, TemporalType.TIMESTAMP);
+            }
+
+            if (termLdt != null) {
+                insertQuery.setParameter("dateTerminated", Timestamp.valueOf(termLdt));
+            } else {
+                insertQuery.setParameter("dateTerminated", (java.util.Date) null, TemporalType.TIMESTAMP);
+            }
+
+            if (creatLdt != null) {
+                insertQuery.setParameter("createdDate", Timestamp.valueOf(creatLdt));
+            } else {
+                insertQuery.setParameter("createdDate", (java.util.Date) null, TemporalType.TIMESTAMP);
+            }
             
             // Execute the insert query
             int rowsAffected = insertQuery.executeUpdate();
@@ -247,6 +292,23 @@ public class EmployeeInfoData {
         EntityTransaction transaction = null;
         
         try {
+        	
+        	// Parse dates from CSV
+        	LocalDateTime birthLdt = (e.getBirthdate() != null && !e.getBirthdate().isEmpty())
+                    ? LocalDateTime.parse(e.getBirthdate(), CSV_FMT)
+                    : null;
+                LocalDate birthDate = birthLdt != null ? birthLdt.toLocalDate() : null;
+                LocalDateTime hiredLdt = (e.getDateHired() != null && !e.getDateHired().isEmpty())
+                    ? LocalDateTime.parse(e.getDateHired(), CSV_FMT)
+                    : null;
+                LocalDateTime termLdt = (e.getDateTerminated() != null && !e.getDateTerminated().isEmpty())
+                    ? LocalDateTime.parse(e.getDateTerminated(), CSV_FMT)
+                    : null;
+                LocalDateTime modLdt = (e.getModifiedDate() != null && !e.getModifiedDate().isEmpty())
+                    ? LocalDateTime.parse(e.getModifiedDate(), CSV_FMT)
+                    : null;
+            
+            
             // Verify the employee exists in the database
             String checkQuery = "SELECT COUNT(*) FROM relation_master WHERE relation_code = ? AND relation_transaction = 'EMPLOYEE'";
             PreparedStatement ps = con.prepareStatement(checkQuery);
@@ -276,30 +338,17 @@ public class EmployeeInfoData {
             
             // Prepare the SQL update query with named parameters
             Query updateQuery = em.createNativeQuery(
-                "UPDATE relation_master SET " +
-                "name = :fullName, " +
-                "first_name = :firstName, " +
-                "last_name = :lastName, " +
-                "related_location = :relatedLocation, " +
-                "position = :position, " +
-                "department = :department, " +
-                "department_description = :departmentDescription, " +
-                "division = :division, " +
-                "division_description = :divisionDescription, " +
-                "mail_phone = :mailPhone, " +
-                "mail_email = :mailEmail, " +
-                "date_of_birth = TO_DATE(:birthdate, 'YYYY-MM-DD'), " +
-                "date_hired = TO_DATE(:dateHired, 'YYYY-MM-DD'), " +
-                "date_terminated = TO_DATE(:dateTerminated, 'YYYY-MM-DD'), " +
-                "profile = :profile, " +
-                "company_name = :companyName, " +
-                "cost_center = :costCode, " +
-                "status = :status, " +
-                "modified_by = 'TRAX_IFACE_BMM', " +
-                "modified_date = :modifiedDate, " +
-                "allow_issue_to = 'YES' " +
-                "WHERE relation_code = :relationCode AND relation_transaction = 'EMPLOYEE'"
-            );
+            		 "UPDATE relation_master SET " +
+            	                " name = :fullName, first_name = :firstName, last_name = :lastName, " +
+            	                " related_location = :relatedLocation, position = :position, " +
+            	                " department = :department, division = :division, " +
+            	                " mail_phone = :mailPhone, mail_email = :mailEmail, " +
+            	                " date_of_birth = :birthdate, date_hired = :dateHired, date_terminated = :dateTerminated, " +
+            	                " gst_gl_company = :companyName, cost_center = :costCode, " +
+            	                " status = :status, modified_by = 'TRAX_IFACE', modified_date = :modifiedDate, " +
+            	                " allow_issue_to = 'YES' " +
+            	                "WHERE relation_code = :relationCode AND relation_transaction = 'EMPLOYEE'"
+            	            );
             
             // Set parameters, handling null values appropriately
             updateQuery.setParameter("relationCode", e.getRelationCode());
@@ -309,18 +358,11 @@ public class EmployeeInfoData {
             updateQuery.setParameter("relatedLocation", e.getRelatedLocation() != null ? e.getRelatedLocation() : "");
             updateQuery.setParameter("position", e.getPosition() != null ? e.getPosition() : "");
             updateQuery.setParameter("department", e.getDepartment() != null ? e.getDepartment() : "");
-            updateQuery.setParameter("departmentDescription", e.getDepartmentDescription() != null ? e.getDepartmentDescription() : "");
+            //updateQuery.setParameter("departmentDescription", e.getDepartmentDescription() != null ? e.getDepartmentDescription() : "");
             updateQuery.setParameter("division", e.getDivision() != null ? e.getDivision() : "");
-            updateQuery.setParameter("divisionDescription", e.getDivisionDescription() != null ? e.getDivisionDescription() : "");
+            //updateQuery.setParameter("divisionDescription", e.getDivisionDescription() != null ? e.getDivisionDescription() : "");
             updateQuery.setParameter("mailPhone", e.getMailPhone() != null ? e.getMailPhone() : "");
             updateQuery.setParameter("mailEmail", e.getMailEmail() != null ? e.getMailEmail() : "");
-            
-            // Handle date parameters
-            updateQuery.setParameter("birthdate", e.getBirthdate() != null ? e.getBirthdate() : null);
-            updateQuery.setParameter("dateHired", e.getDateHired() != null ? e.getDateHired() : null);
-            updateQuery.setParameter("dateTerminated", e.getDateTerminated() != null ? e.getDateTerminated() : null);
-            
-            updateQuery.setParameter("profile", e.getProfile() != null ? e.getProfile() : "");
             updateQuery.setParameter("companyName", e.getCompanyName() != null ? e.getCompanyName() : "");
             updateQuery.setParameter("costCode", e.getCostCode() != null ? e.getCostCode() : "");
             // Convert status code (1=ACTIVE, other=INACTIVE) or default to ACTIVE
@@ -329,7 +371,33 @@ public class EmployeeInfoData {
         	        ? (e.getStatus().equals("1") ? "ACTIVE" : "INACTIVE")
         	        : "ACTIVE"
         	);
-            updateQuery.setParameter("modifiedDate", e.getModifiedDate() != null ? e.getModifiedDate() : "");
+            //updateQuery.setParameter("profile", e.getProfile() != null ? e.getProfile() : "");
+            
+            // Date binds with TemporalType overload for nulls
+            if (birthDate != null) {
+            	updateQuery.setParameter("birthdate", Date.valueOf(birthDate));
+            } else {
+            	updateQuery.setParameter("birthdate", (java.util.Date) null, TemporalType.DATE);
+            }
+
+            if (hiredLdt != null) {
+            	updateQuery.setParameter("dateHired", Timestamp.valueOf(hiredLdt));
+            } else {
+            	updateQuery.setParameter("dateHired", (java.util.Date) null, TemporalType.TIMESTAMP);
+            }
+
+            if (termLdt != null) {
+            	updateQuery.setParameter("dateTerminated", Timestamp.valueOf(termLdt));
+            } else {
+            	updateQuery.setParameter("dateTerminated", (java.util.Date) null, TemporalType.TIMESTAMP);
+            }
+
+            if (modLdt != null) {
+            	updateQuery.setParameter("createdDate", Timestamp.valueOf(modLdt));
+            } else {
+            	updateQuery.setParameter("createdDate", (java.util.Date) null, TemporalType.TIMESTAMP);
+            }
+           
             
             // Execute the update query
             int rowsAffected = updateQuery.executeUpdate();
