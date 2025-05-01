@@ -93,6 +93,9 @@ public class EmployeeInfoData {
          }
          
          try {
+             // Log the relation code we're checking for debugging purposes
+             logger.info("Checking if employee exists with relationCode: " + e.getRelationCode());
+             
              // Query to check if the employee exists in relation_master table
              String queryStr = "SELECT COUNT(*) FROM relation_master " +
                               "WHERE relation_code = ? AND relation_transaction = 'EMPLOYEE'";
@@ -109,6 +112,9 @@ public class EmployeeInfoData {
              
              rs.close();
              ps.close();
+             
+             // Log the count for debugging purposes
+             logger.info("Found " + count + " existing records for relationCode: " + e.getRelationCode());
              
              // If employee exists, update the record, otherwise insert a new one
              if (count > 0) {
@@ -167,6 +173,27 @@ public class EmployeeInfoData {
                 LocalDateTime creatLdt = (e.getCreatedDate() != null && !e.getCreatedDate().isEmpty())
                     ? LocalDateTime.parse(e.getCreatedDate(), CSV_FMT)
                     : null;
+            
+            // Double check if the employee already exists before trying to insert
+            String checkQuery = "SELECT COUNT(*) FROM relation_master WHERE relation_code = ? AND relation_transaction = 'EMPLOYEE'";
+            PreparedStatement ps = con.prepareStatement(checkQuery);
+            ps.setString(1, e.getRelationCode());
+            
+            ResultSet rs = ps.executeQuery();
+            int count = 0;
+            
+            if (rs.next()) {
+                count = rs.getInt(1);
+            }
+            
+            rs.close();
+            ps.close();
+            
+            // If employee already exists, update instead of insert
+            if (count > 0) {
+                logger.warning("Employee with relationCode: " + e.getRelationCode() + " already exists. Redirecting to update.");
+                return updateEmployee(e);
+            }
             
             // Begin transaction
             transaction = em.getTransaction();
@@ -257,13 +284,21 @@ public class EmployeeInfoData {
             if (transaction != null && transaction.isActive()) {
                 transaction.rollback();
             }
+            
+            // Check if it's a unique constraint violation
+            if (ex.toString().contains("unique constraint") || 
+                ex.toString().contains("ORA-00001") || 
+                ex.toString().contains("P_RELATION_MASTER")) {
+                logger.warning("Attempted to insert employee with relationCode: " + e.getRelationCode() + " that already exists. Trying to update instead.");
+                return updateEmployee(e);
+            }
+            
             executed = "Error inserting employee: " + ex.toString();
             logger.severe(executed);
             EmployeeInfoController.addError(executed);
         }
         
         return executed;
-    	
     }
     
     /**
@@ -393,9 +428,9 @@ public class EmployeeInfoData {
             }
 
             if (modLdt != null) {
-            	updateQuery.setParameter("createdDate", Timestamp.valueOf(modLdt));
+                updateQuery.setParameter("modifiedDate", Timestamp.valueOf(modLdt));
             } else {
-            	updateQuery.setParameter("createdDate", (java.util.Date) null, TemporalType.TIMESTAMP);
+                updateQuery.setParameter("modifiedDate", (java.util.Date) null, TemporalType.TIMESTAMP);
             }
            
             
@@ -478,11 +513,10 @@ public class EmployeeInfoData {
     	        
     	        // If skill already exists for this employee, return a warning
     	        if (count > 0) {
-    	            executed = "Cannot insert skill: Employee with relationCode " + e.getRelationCode() + 
-    	                      " already has the skill " + e.getSkill();
-    	            logger.warning(executed);
-    	            EmployeeInfoController.addError(executed);
-    	            return executed;
+    	            String message = "Skill " + e.getSkill() + " already exists for employee with relationCode " + e.getRelationCode() + ". No insertion needed.";
+    	            logger.info(message);
+    	            
+    	            return executed; // Return "OK" instead of an error message
     	        }
     	        
     	        // If skill doesn't exist for this employee, proceed with insertion
@@ -498,15 +532,14 @@ public class EmployeeInfoData {
     	            // Prepare the SQL insert query with named parameters
     	            Query insertQuery = em.createNativeQuery(
     	                "INSERT INTO employee_skill (" +
-    	                "  employee, skill, skill_description, created_by, created_date, modified_by, modified_date" +
+    	                "  employee, skill, created_by, created_date, modified_by, modified_date, AC_TYPE, AC_SERIES" +
     	                ") VALUES (" +
-    	                "  :relationCode, :skillCode, :skillDescription, 'TRAX_IFACE_BMM', SYSDATE, 'TRAX_IFACE_BMM', SYSDATE" +
+    	                "  :relationCode, :skillCode, 'TRAX_IFACE', SYSDATE, 'TRAX_IFACE', SYSDATE, '          ', '          ' " +
     	                ")"
     	            );
     	            
     	            insertQuery.setParameter("relationCode", e.getRelationCode() != null ? e.getRelationCode() : "");
     	            insertQuery.setParameter("skillCode", e.getSkill() != null ? e.getSkill() : "");
-    	            insertQuery.setParameter("skillDescription", e.getSkillDescription() != null ? e.getSkillDescription() : "");
     	            
     	            // Execute the insert query
     	            int rowsAffected = insertQuery.executeUpdate();
@@ -597,7 +630,7 @@ public class EmployeeInfoData {
     	              "INSERT INTO skill_master (" +
     	              "  skill, skill_description, status, created_by, created_date, modified_by, modified_date, MECHANIC, INSPECTOR, ETOPS, DEFECT" +
     	              ") VALUES (" +
-    	              "  :skillCode, :skillDescription, 'ACTIVE', 'TRAX_IFACE_BMM', SYSDATE, 'TRAX_IFACE_BMM', SYSDATE, 'Y', 'Y', 'N', 'N'" +
+    	              "  :skillCode, :skillDescription, 'ACTIVE', 'TRAX_IFACE', SYSDATE, 'TRAX_IFACE', SYSDATE, 'Y', 'Y', 'N', 'N'" +
     	              ")"
     	          );
     	            
