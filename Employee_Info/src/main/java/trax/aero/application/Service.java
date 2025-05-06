@@ -18,11 +18,11 @@ import trax.aero.logger.LogManager;
 
 
 
-@Path("/PersonalInfoService")
+@Path("/EmployeeInfoService")
 public class Service {
 	
 	EntityManagerFactory factory;
-	Logger logger = LogManager.getLogger("PersonalInfo_I28");
+	Logger logger = LogManager.getLogger("EmployeeInfo_I01");
 	
 	@GET
     @Path("/healthCheck")
