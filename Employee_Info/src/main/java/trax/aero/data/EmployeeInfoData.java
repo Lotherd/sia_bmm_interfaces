@@ -43,7 +43,7 @@ public class EmployeeInfoData {
  static Logger logger = LogManager.getLogger("EmployeeInfo_I01");
     
  public EmployeeInfoData() {
-        factory = Persistence.createEntityManagerFactory("TraxESD");
+        factory = Persistence.createEntityManagerFactory("TraxStandaloneDS");
         em = factory.createEntityManager();
         
         try {
