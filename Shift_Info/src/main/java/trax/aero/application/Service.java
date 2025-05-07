@@ -22,7 +22,7 @@ import trax.aero.logger.LogManager;
 public class Service {
 	
 	EntityManagerFactory factory;
-	Logger logger = LogManager.getLogger("ShiftInfo_I01");
+	Logger logger = LogManager.getLogger("ShiftInfo_I02");
 	
 	@GET
     @Path("/healthCheck")

@@ -9,14 +9,12 @@ import trax.aero.data.ShiftInfoData;
 import trax.aero.logger.LogManager;
 import trax.aero.pojo.ShiftInfo;
 
-
 public class Worker implements Runnable {
 
     private ShiftInfoData data = null;
-    private static Logger logger = LogManager.getLogger("ShiftInfo_I01");
-    
+    private static Logger logger = LogManager.getLogger("ShiftInfo_I02");
+
     public Worker(EntityManagerFactory factory) {
-   
         data = new ShiftInfoData();
     }
 
@@ -27,16 +25,16 @@ public class Worker implements Runnable {
         setExecuted("OK");
 
         try {
-            String output = data.insertEmployee(input);
-            if(output == null || !output.equalsIgnoreCase("OK")) {
-                RunAble.employeesFailure.add(input);
-            }
+ 
+            logger.info("Worker procesando datos: " + (input != null ? "ShiftInfo ID: " + input.getShiftGroupCode() : "Sin datos"));
+            
+       
         }
         catch(Exception e) {
             e.printStackTrace();
             logger.severe(e.toString());
+            setExecuted("ERROR: " + e.getMessage());
         } finally {
-        
             try {
                 if(data.getCon() != null && !data.getCon().isClosed()) {
                     data.getCon().close();

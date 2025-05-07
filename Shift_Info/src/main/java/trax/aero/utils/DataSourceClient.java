@@ -11,7 +11,7 @@ import trax.aero.logger.LogManager;
 
 public class DataSourceClient {
 	
-	static Logger logger = LogManager.getLogger("EmployeeInfo_I01");
+	static Logger logger = LogManager.getLogger("ShiftInfo_I02");
 	
 	public static Connection getConnection() throws Exception  
 	{

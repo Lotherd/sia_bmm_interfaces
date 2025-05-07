@@ -51,7 +51,7 @@ public final class PGPEncryption {
 	private static final String encryptionPassphrase = System.getProperty("passphrase"); 
 	private static final String encryptionFile =System.getProperty("keyFile");
 	
-	static Logger logger = LogManager.getLogger("EmployeeInfo_01");
+	static Logger logger = LogManager.getLogger("ShiftInfo_I02");
 	
 	 public static void decryptFile(
 	            String inputFileName,
@@ -223,6 +223,16 @@ public final class PGPEncryption {
 	        PGPPublicKey encKey = PGPUtils.readPublicKey(encKeyFileName);
 	        encryptFile(out, inputFileName, encKey, armor, withIntegrityCheck);
 	        out.close();
+	    }
+	    
+	    public static void encryptFile(
+	            String inputFileName,
+	            String outputFileName,
+	            String keyFileName,
+	            boolean armor) throws IOException, NoSuchProviderException, PGPException
+	    {
+	        
+	        encryptFile(outputFileName, inputFileName, keyFileName, armor, true);
 	    }
 
 	    private static void encryptFile(
