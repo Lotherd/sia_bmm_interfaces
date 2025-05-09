@@ -35,7 +35,7 @@ public class ShiftInfoData {
     static Logger logger = LogManager.getLogger("ShiftInfo_I02");
     
     public ShiftInfoData() {
-        factory = Persistence.createEntityManagerFactory("TraxESD");
+        factory = Persistence.createEntityManagerFactory("TraxStandaloneDS");
         em = factory.createEntityManager();
         
         try {

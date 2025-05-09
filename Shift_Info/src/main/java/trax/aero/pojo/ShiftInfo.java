@@ -2,19 +2,21 @@ package trax.aero.pojo;
 
 import java.sql.Timestamp;
 
+
 /**
- * Clase POJO para almacenar los datos de turnos
+ * Data transfer object that represents shift information for both employees and shift patterns
+ * Used for transferring data between database and export files for BMM interface
  */
 public class ShiftInfo {
     
-    // Campos para EmployeeSchedule
+    // Employee Schedule fields - contains the basic assignment of employees to shifts
     private String shiftGroupCode;
     private String companyCode;
     private String empNo;
     private String startShiftDate;
     private String alwaysPresent;
     
-    // Campos para ShiftPatterns
+    // Shift Pattern fields - defines the schedule template including work hours and break times
     private String shiftDailyCode;
     private String startTime;
     private String endTime;
@@ -24,7 +26,7 @@ public class ShiftInfo {
     private String isActive;
     private String halfDay;
     
-    // Campos de tiempos de descanso
+    // Break schedule fields - defines up to 6 break periods within a shift
     private String breakStartTime1;
     private String breakEndTime1;
     private String breakStartTime2;
@@ -38,14 +40,14 @@ public class ShiftInfo {
     private String breakStartTime6;
     private String breakEndTime6;
     
-    // Campos adicionales para patrones de turnos
+    // Shift group metadata - contains information about the shift group configuration
     private String shiftGroupCode1;
     private String shiftGroupName;
     private String companyCode1;
     private String totalDays;
     private String isActive1;
     
-    // Códigos de turnos diarios
+    // Daily shift codes - defines the pattern of shifts across a weekly cycle
     private String shiftDailyCode1;
     private String shiftDailyCode2;
     private String shiftDailyCode3;
@@ -54,14 +56,16 @@ public class ShiftInfo {
     private String shiftDailyCode6;
     private String shiftDailyCode7;
     
-    // Tipo de registro (para diferenciar entre EmployeeSchedule y ShiftPatterns)
+    // Record type identifier - differentiates between "EMPLOYEE_SCHEDULE" and "SHIFT_PATTERNS"
     private String recordType;
     
-    // Constructor vacío
+    /**
+     * Default constructor for ShiftInfo
+     */
     public ShiftInfo() {
     }
     
-    // Métodos getter y setter para todos los campos
+    // Getter and setter methods for all fields
     public String getShiftGroupCode() {
         return shiftGroupCode;
     }
