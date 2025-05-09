@@ -26,6 +26,12 @@ public class Start
 	RunAble timer = null;
 	Logger logger = LogManager.getLogger("ShiftInfo_I02");
 	
+	 /**
+     * Initializes the scheduler and configures the job execution pattern
+     * Supports two scheduling modes:
+     * - daily: runs at a specific time each day
+     * - interval: runs repeatedly at a fixed interval in seconds
+     */
 	@PostConstruct
     public void start() {
         timer = new RunAble();
@@ -71,6 +77,10 @@ public class Start
         }
     }
     
+	/**
+     * Gracefully shuts down the scheduler when the application is being terminated
+     * Ensures all resources are properly released
+     */
     @PreDestroy
     public void stop() {
         if (!scheduledServ.isShutdown()) {

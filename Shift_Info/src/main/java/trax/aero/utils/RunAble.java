@@ -7,6 +7,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.logging.Logger;
 
+import trax.aero.Encryption.Encryption;
 import trax.aero.Encryption.PGPEncryption;
 import trax.aero.data.ShiftInfoData;
 import trax.aero.logger.LogManager;
@@ -25,11 +26,13 @@ public class RunAble implements Runnable {
     }
     
     /**
-     * Genera el archivo EmployeeSchedule
+     * Generates the EmployeeSchedule file
+     * This method retrieves employee schedule data from the database, formats it into a 
+     * semicolon-delimited text file, and optionally encrypts the output based on system configuration
      */
     private void generateEmployeeScheduleFile() {
         try {
-            // Configurar directorios
+          
             final String exportDir = System.getProperty("ShiftInfo_exportLoc");
             File outputFolder = new File(exportDir);
             
@@ -37,46 +40,42 @@ public class RunAble implements Runnable {
                 outputFolder.mkdirs();
             }
             
-            // Obtener datos de horarios de empleados
+           
             List<ShiftInfo> shifts = data.getEmployeeScheduleData();
             
             if (shifts.isEmpty()) {
                 logger.info("No employee schedule records found to export");
                 return;
             }
-            
-            // Generar nombre de archivo con timestamp
+         
             DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
             LocalDateTime currentDateTime = LocalDateTime.now();
             String fileName = "EmployeeSchedule_" + dtf.format(currentDateTime) + ".txt";
             
             File outputFile = new File(outputFolder, fileName);
             
-            // Escribir el archivo de texto
+      
             try (FileWriter writer = new FileWriter(outputFile)) {
-                // Escribir encabezados
+      
                 writer.write("SHIFTGROUPCODE;COMPANY_CODE;EMP_NO;STARTSHIFTDATE;ALWAYS_PRESENT\n");
                 
-                // Escribir registros
                 for (ShiftInfo shift : shifts) {
                     StringBuilder line = new StringBuilder();
                     
-                    // Agregar campos en el orden requerido
+ 
                     appendValueWithSemicolon(line, shift.getShiftGroupCode());
                     appendValueWithSemicolon(line, shift.getCompanyCode());
                     appendValueWithSemicolon(line, shift.getEmpNo());
                     appendValueWithSemicolon(line, shift.getStartShiftDate());
-                    appendValue(line, shift.getAlwaysPresent()); // Último campo sin punto y coma al final
-                    
-                    // Agregar nueva línea
+                    appendValue(line, shift.getAlwaysPresent()); 
+
                     line.append("\n");
                     
-                    // Escribir la línea al archivo
                     writer.write(line.toString());
                 }
             }
             
-            // Opcionalmente, encriptar el archivo si es necesario
+
             if (Boolean.parseBoolean(System.getProperty("ShiftInfo_encryptOutput", "false"))) {
                 encryptFile(outputFile);
             }
@@ -89,11 +88,13 @@ public class RunAble implements Runnable {
     }
     
     /**
-     * Genera el archivo ShiftPatterns
+     * Generates the ShiftPatterns file
+     * This method extracts shift pattern data including daily codes, time slots, break schedules,
+     * and creates a formatted text file with all required fields for BMM interface integration
      */
     private void generateShiftPatternsFile() {
         try {
-            // Configurar directorios
+            
             final String exportDir = System.getProperty("ShiftInfo_exportLoc");
             File outputFolder = new File(exportDir);
             
@@ -101,15 +102,14 @@ public class RunAble implements Runnable {
                 outputFolder.mkdirs();
             }
             
-            // Obtener datos de patrones de turnos
+
             List<ShiftInfo> shifts = data.getShiftPatternsData();
             
             if (shifts.isEmpty()) {
                 logger.info("No shift pattern records found to export");
                 return;
             }
-            
-            // Generar nombre de archivo con timestamp
+
             DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
             LocalDateTime currentDateTime = LocalDateTime.now();
             String fileName = "ShiftPatterns_" + dtf.format(currentDateTime) + ".txt";
@@ -187,35 +187,47 @@ public class RunAble implements Runnable {
         }
     }
     
-    
+    /**
+     * Appends a value to the StringBuilder followed by a semicolon delimiter
+     * 
+     * @param sb The StringBuilder to append to
+     * @param value The value to append (null values are handled as empty strings)
+     */
     private void appendValueWithSemicolon(StringBuilder sb, String value) {
         sb.append(value != null ? value : "");
         sb.append(";");
     }
     
-    
+    /**
+     * Appends a value to the StringBuilder without a trailing delimiter
+     * Used for the last field in each record
+     * 
+     * @param sb The StringBuilder to append to
+     * @param value The value to append (null values are handled as empty strings)
+     */
     private void appendValue(StringBuilder sb, String value) {
         sb.append(value != null ? value : "");
     }
     
-   
+    /**
+     * Encrypts the generated file using the configured encryption method
+     * Creates an encrypted version with .enc extension and removes the original file
+     * 
+     * @param file The file to encrypt
+     * @throws Exception If encryption process fails
+     */
     private void encryptFile(File file) throws Exception {
         try {
             logger.info("Encrypting file " + file.getName());
             
-            String encryptedFileName = file.getAbsolutePath() + ".pgp";
+            File encryptedFile = new File(file.getAbsolutePath() + ".enc");
             
-            PGPEncryption.encryptFile(
-                file.getAbsolutePath(),
-                encryptedFileName,
-                PGPEncryption.getEncryptionfile(),
-                true
-            );
             
-           
-            if (new File(encryptedFileName).exists()) {
+            Encryption.encryptFile(file, encryptedFile);
+            
+            if (encryptedFile.exists()) {
                 file.delete();
-                logger.info("File successfully encrypted: " + encryptedFileName);
+                logger.info("File successfully encrypted: " + encryptedFile.getAbsolutePath());
             }
         } catch (Exception e) {
             logger.severe("Error encrypting file: " + e.toString());
@@ -223,6 +235,11 @@ public class RunAble implements Runnable {
         }
     }
     
+    /**
+     * Main process method that orchestrates the entire export operation
+     * Acquires a database lock to ensure exclusive access, generates both required files,
+     * and properly releases the lock when completed
+     */
     private void process() {
         try {
             if (data.lockAvailable("I02")) {
@@ -239,6 +256,9 @@ public class RunAble implements Runnable {
         }
     }
     
+    /**
+     * Runnable implementation method that starts the export process
+     */
     @Override
     public void run() {
         process();
