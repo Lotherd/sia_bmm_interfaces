@@ -16,13 +16,23 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 -->
-<persistence version="2.0" xmlns="http://java.sun.com/xml/ns/persistence"
+<persistence xmlns="http://xmlns.jcp.org/xml/ns/persistence"
              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-             xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd">
-    <persistence-unit name="book-pu" transaction-type="JTA">
-        <jta-data-source>bookDatabase</jta-data-source>
-        <properties>
-            <property name="openjpa.jdbc.SynchronizeMappings" value="buildSchema(ForeignKeys=true)"/>
-        </properties>
-    </persistence-unit>
+             xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence
+                                 http://xmlns.jcp.org/xml/ns/persistence/persistence_2_2.xsd"
+             version="2.2">
+
+  <persistence-unit name="TraxStandaloneDS" transaction-type="JTA">
+    <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
+    <jta-data-source>TraxStandaloneDS</jta-data-source>
+
+    <class>trax.aero.model.InterfaceLockMaster</class>
+    <shared-cache-mode>NONE</shared-cache-mode>
+
+    <properties>
+      
+      <property name="hibernate.dialect"
+                value="org.hibernate.dialect.Oracle12cDialect"/>
+    </properties>
+  </persistence-unit>
 </persistence>

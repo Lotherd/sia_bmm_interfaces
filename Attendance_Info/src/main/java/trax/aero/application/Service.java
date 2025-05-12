@@ -28,7 +28,12 @@ import javax.ws.rs.core.Response.Status;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import trax.aero.controller.AttendanceInfoController;
+import trax.aero.data.AttendanceInfoData;
+import trax.aero.exception.CustomizeHandledException;
 import trax.aero.logger.LogManager;
+import trax.aero.pojo.Import;
+import trax.aero.service.EmailService;
 
 
 @Path("/AttendaceInfoService")
@@ -102,7 +107,7 @@ public class Service {
                 .entity("{\"status\": \"ERROR\", \"message\": \"" + errorMsg + "\"}")
                 .build();
                 
-        } catch (AttendanceInfoException e) {
+        } catch (CustomizeHandledException e) {
             // Business logic error
             logger.severe("Processing error: " + e.getMessage());
             AttendanceInfoController.addError(e.getMessage());
