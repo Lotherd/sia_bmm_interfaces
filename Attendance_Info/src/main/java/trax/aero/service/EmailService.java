@@ -28,7 +28,7 @@ public class EmailService {
             String host = System.getProperty("fromHost");
             String port = System.getProperty("fromPort");
             
-            final String toEmail = System.getProperty("ImportClockOnOff_toEmail");
+            final String toEmail = System.getProperty("AttendaceInfo_toEmail");
             
             ArrayList<String> emailsList = new ArrayList<>(Arrays.asList(toEmail.split(",")));
             

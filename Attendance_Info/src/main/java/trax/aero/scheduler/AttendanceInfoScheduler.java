@@ -27,7 +27,7 @@ public class AttendanceInfoScheduler implements ServletContextListener {
         scheduledExecutor = Executors.newScheduledThreadPool(1);
         
         // Schedule task
-        int interval = Integer.parseInt(System.getProperty("ImportClockOnOff_interval", "60"));
+        int interval = Integer.parseInt(System.getProperty("AttendaceInfo_interval", "60"));
         scheduledExecutor.scheduleAtFixedRate(new AttendanceTask(), 30, interval, TimeUnit.SECONDS);
         
         logger.info("Clock On/Off scheduler initialized with interval: " + interval + " seconds");

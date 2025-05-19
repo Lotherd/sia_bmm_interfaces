@@ -242,10 +242,10 @@ public class AttendanceInfoData {
         try {
             // Check for duplicate records
             String checkQuery = "SELECT COUNT(*) FROM employee_attendance_log " +
-                               "WHERE employee = ? AND type_off = ? " +
-                               "AND TRUNC(start_time) = TRUNC(?) " +
-                               "AND ABS(TO_NUMBER(TO_CHAR(start_time, 'HH24MISS')) - TO_NUMBER(TO_CHAR(?, 'HH24MISS'))) < 1000";
-                               
+                              "WHERE employee = ? AND type_off = ? " +
+                              "AND TRUNC(start_time) = TRUNC(?) " +
+                              "AND ABS(TO_NUMBER(TO_CHAR(start_time, 'HH24MISS')) - TO_NUMBER(TO_CHAR(?, 'HH24MISS'))) < 1000";
+                              
             DateTime punchDateTime = new DateTime(punch.getPunchDateTime());
             
             checkDuplicates = connection.prepareStatement(checkQuery);
@@ -257,16 +257,10 @@ public class AttendanceInfoData {
             ResultSet rs = checkDuplicates.executeQuery();
             if (rs.next() && rs.getInt(1) > 0) {
                 logger.info("Skipping duplicate punch record for employee: " + punch.getEmployeeId() + 
-                           ", type: " + punch.getPunchType() + 
-                           ", time: " + punch.getPunchDateTime());
+                          ", type: " + punch.getPunchType() + 
+                          ", time: " + punch.getPunchDateTime());
                 return;
             }
-            
-            // Insert new log record
-            String q = "INSERT INTO employee_attendance_log " +
-                      "(transaction_no, transaction_type, employee, start_time, created_by, created_date, " +
-                      "location, site, start_date, type_off, \"GROUP\") " +
-                      "VALUES (?, ?, ?, ?, ?, sysdate, ?, ?, ?, ?, 'testGroup')";
             
             // Extract date from datetime
             SimpleDateFormat sdFormat = new SimpleDateFormat("yyyy-MM-dd");
@@ -274,8 +268,17 @@ public class AttendanceInfoData {
             DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd");
             DateTime punchDate = formatter.parseDateTime(punchDateString);
             
+            // Get transaction number for this record
+            BigDecimal transactionNo = getTransactionNo();
+            
+            // Insert new log record
+            String q = "INSERT INTO employee_attendance_log " +
+                      "(transaction_no, transaction_type, employee, start_time, created_by, created_date, " +
+                      "location, site, start_date, type_off, \"GROUP\") " +
+                      "VALUES (?, ?, ?, ?, ?, sysdate, ?, ?, ?, ?, 'testGroup')";
+            
             ps = connection.prepareStatement(q);
-            ps.setBigDecimal(1, getTransactionNo());
+            ps.setBigDecimal(1, transactionNo);
             ps.setString(2, "LOG");
             ps.setString(3, punch.getEmployeeId());
             ps.setDate(4, new java.sql.Date(punchDateTime.getMillis()));
@@ -288,26 +291,53 @@ public class AttendanceInfoData {
             
             // Update end time if this is a clock out
             if ("OUT".equalsIgnoreCase(punch.getPunchType())) {
-                q = "UPDATE EMPLOYEE_ATTENDANCE_LOG ELA SET ELA.END_DATE = ?, ELA.END_TIME = ? " +
-                    "WHERE ELA.EMPLOYEE = ? AND ELA.TRANSACTION_NO IN " +
-                    "(SELECT ELA1.TRANSACTION_NO FROM EMPLOYEE_ATTENDANCE_LOG ELA1 " +
-                    "WHERE ELA1.EMPLOYEE = ELA.EMPLOYEE AND ELA1.LOCATION = ? " +
-                    "AND ELA1.SITE = ? AND ELA1.TYPE_OFF IN ('OUT','IN') " +
-                    "ORDER BY ELA1.CREATED_DATE DESC FETCH FIRST 2 ROWS ONLY)";
-                
-                ps1 = connection.prepareStatement(q);
+                // 1. First update the current OUT record with END_DATE and END_TIME
+                String updateOutQuery = "UPDATE EMPLOYEE_ATTENDANCE_LOG " +
+                                       "SET END_DATE = ?, END_TIME = ? " +
+                                       "WHERE TRANSACTION_NO = ?";
+                                       
+                ps1 = connection.prepareStatement(updateOutQuery);
                 ps1.setDate(1, new java.sql.Date(punchDate.getMillis()));
-                ps1.setDate(2, new java.sql.Date(punchDateTime.getMillis()));
-                ps1.setString(3, punch.getEmployeeId());
-                ps1.setString(4, location != null ? location : "");
-                ps1.setString(5, site != null ? site : "");
-                ps1.executeUpdate();
+                ps1.setTimestamp(2, new java.sql.Timestamp(punchDateTime.getMillis()));
+                ps1.setBigDecimal(3, transactionNo);
+                
+                int outRowsUpdated = ps1.executeUpdate();
+                logger.info("Updated " + outRowsUpdated + " OUT record(s) with end time");
+                ps1.close();
+                
+                // 2. Find and update the most recent IN record for this employee
+                String findInQuery = "SELECT TRANSACTION_NO FROM EMPLOYEE_ATTENDANCE_LOG " +
+                                   "WHERE EMPLOYEE = ? AND TYPE_OFF = 'IN' " +
+                                   "ORDER BY CREATED_DATE DESC FETCH FIRST 1 ROW ONLY";
+                
+                ps1 = connection.prepareStatement(findInQuery);
+                ps1.setString(1, punch.getEmployeeId());
+                ResultSet inRs = ps1.executeQuery();
+                
+                if (inRs.next()) {
+                    BigDecimal inTransactionNo = inRs.getBigDecimal("TRANSACTION_NO");
+                    ps1.close();
+                    
+                    // Update the IN record with END_DATE and END_TIME
+                    String updateInQuery = "UPDATE EMPLOYEE_ATTENDANCE_LOG " +
+                                         "SET END_DATE = ?, END_TIME = ? " +
+                                         "WHERE TRANSACTION_NO = ?";
+                    
+                    ps1 = connection.prepareStatement(updateInQuery);
+                    ps1.setDate(1, new java.sql.Date(punchDate.getMillis()));
+                    ps1.setTimestamp(2, new java.sql.Timestamp(punchDateTime.getMillis()));
+                    ps1.setBigDecimal(3, inTransactionNo);
+                    
+                    int inRowsUpdated = ps1.executeUpdate();
+                    logger.info("Updated " + inRowsUpdated + " IN record(s) with end time");
+                }
+                inRs.close();
             }
             
             logger.info("Attendance log created for employee: " + punch.getEmployeeId() + 
-                       ", type: " + punch.getPunchType() + 
-                       ", location: " + location + 
-                       ", site: " + site);
+                      ", type: " + punch.getPunchType() + 
+                      ", location: " + location + 
+                      ", site: " + site);
             
         } catch (SQLException sqle) {
             logger.severe("SQL error creating attendance log: " + sqle.getMessage());
