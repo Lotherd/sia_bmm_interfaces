@@ -26,7 +26,7 @@
 			<attribute name="optional" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7">
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8">
 		<attributes>
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
@@ -35,57 +35,6 @@
 		<attributes>
 			<attribute name="maven.pomderived" value="true"/>
 			<attribute name="org.eclipse.jst.component.dependency" value="/WEB-INF/lib"/>
-			<attribute name="owner.project.facets" value="jboss.m2"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="lib" path="C:/Users/Ernesto.Rodriguez/.m2/repository/commons-codec/commons-codec/1.12/commons-codec-1.12.jar" sourcepath="C:/Users/Ernesto.Rodriguez/.m2/repository/commons-codec/commons-codec/1.12/commons-codec-1.12-sources.jar">
-		<attributes>
-			<attribute name="maven.pomderived" value="true"/>
-			<attribute name="org.eclipse.jst.component.archivename" value="commons-codec-1.12.jar"/>
-			<attribute name="maven.groupId" value="commons-codec"/>
-			<attribute name="maven.artifactId" value="commons-codec"/>
-			<attribute name="maven.version" value="1.12"/>
-			<attribute name="maven.scope" value="compile"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="lib" path="C:/Users/Ernesto.Rodriguez/.m2/repository/org/bouncycastle/bcprov-ext-jdk15on/1.70/bcprov-ext-jdk15on-1.70.jar" sourcepath="C:/Users/Ernesto.Rodriguez/.m2/repository/org/bouncycastle/bcprov-ext-jdk15on/1.70/bcprov-ext-jdk15on-1.70-sources.jar">
-		<attributes>
-			<attribute name="maven.pomderived" value="true"/>
-			<attribute name="org.eclipse.jst.component.archivename" value="bcprov-ext-jdk15on-1.70.jar"/>
-			<attribute name="maven.groupId" value="org.bouncycastle"/>
-			<attribute name="maven.artifactId" value="bcprov-ext-jdk15on"/>
-			<attribute name="maven.version" value="1.70"/>
-			<attribute name="maven.scope" value="compile"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="lib" path="C:/Users/Ernesto.Rodriguez/.m2/repository/org/bouncycastle/bcpg-jdk15on/1.70/bcpg-jdk15on-1.70.jar" sourcepath="C:/Users/Ernesto.Rodriguez/.m2/repository/org/bouncycastle/bcpg-jdk15on/1.70/bcpg-jdk15on-1.70-sources.jar">
-		<attributes>
-			<attribute name="maven.pomderived" value="true"/>
-			<attribute name="org.eclipse.jst.component.archivename" value="bcpg-jdk15on-1.70.jar"/>
-			<attribute name="maven.groupId" value="org.bouncycastle"/>
-			<attribute name="maven.artifactId" value="bcpg-jdk15on"/>
-			<attribute name="maven.version" value="1.70"/>
-			<attribute name="maven.scope" value="compile"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="lib" path="C:/Users/Ernesto.Rodriguez/.m2/repository/org/apache/commons/commons-email/1.5/commons-email-1.5.jar" sourcepath="C:/Users/Ernesto.Rodriguez/.m2/repository/org/apache/commons/commons-email/1.5/commons-email-1.5-sources.jar">
-		<attributes>
-			<attribute name="maven.pomderived" value="true"/>
-			<attribute name="org.eclipse.jst.component.archivename" value="commons-email-1.5.jar"/>
-			<attribute name="maven.groupId" value="org.apache.commons"/>
-			<attribute name="maven.artifactId" value="commons-email"/>
-			<attribute name="maven.version" value="1.5"/>
-			<attribute name="maven.scope" value="compile"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="lib" path="C:/Users/Ernesto.Rodriguez/.m2/repository/org/apache/commons/commons-email/1.2/commons-email-1.2.jar" sourcepath="C:/Users/Ernesto.Rodriguez/.m2/repository/org/apache/commons/commons-email/1.2/commons-email-1.2-sources.jar">
-		<attributes>
-			<attribute name="maven.pomderived" value="true"/>
-			<attribute name="org.eclipse.jst.component.archivename" value="commons-email-1.2.jar"/>
-			<attribute name="maven.groupId" value="org.apache.commons"/>
-			<attribute name="maven.artifactId" value="commons-email"/>
-			<attribute name="maven.version" value="1.2"/>
-			<attribute name="maven.scope" value="compile"/>
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="output" path="target/classes"/>
