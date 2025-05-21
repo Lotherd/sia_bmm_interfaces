@@ -38,5 +38,65 @@
 			<attribute name="owner.project.facets" value="jboss.m2"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry kind="lib" path="C:/Users/Ernesto.Rodriguez/.m2/repository/com/fasterxml/jackson/core/jackson-annotations/2.10.0/jackson-annotations-2.10.0.jar" sourcepath="C:/Users/Ernesto.Rodriguez/.m2/repository/com/fasterxml/jackson/core/jackson-annotations/2.10.0/jackson-annotations-2.10.0-sources.jar">
+		<attributes>
+			<attribute name="maven.pomderived" value="true"/>
+			<attribute name="org.eclipse.jst.component.archivename" value="jackson-annotations-2.10.0.jar"/>
+			<attribute name="maven.groupId" value="com.fasterxml.jackson.core"/>
+			<attribute name="maven.artifactId" value="jackson-annotations"/>
+			<attribute name="maven.version" value="2.10.0"/>
+			<attribute name="maven.scope" value="compile"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="C:/Users/Ernesto.Rodriguez/.m2/repository/org/apache/commons/commons-email/1.2/commons-email-1.2.jar" sourcepath="C:/Users/Ernesto.Rodriguez/.m2/repository/org/apache/commons/commons-email/1.2/commons-email-1.2-sources.jar">
+		<attributes>
+			<attribute name="maven.pomderived" value="true"/>
+			<attribute name="org.eclipse.jst.component.archivename" value="commons-email-1.2.jar"/>
+			<attribute name="maven.groupId" value="org.apache.commons"/>
+			<attribute name="maven.artifactId" value="commons-email"/>
+			<attribute name="maven.version" value="1.2"/>
+			<attribute name="maven.scope" value="compile"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="C:/Users/Ernesto.Rodriguez/.m2/repository/com/fasterxml/jackson/core/jackson-databind/2.10.0/jackson-databind-2.10.0.jar" sourcepath="C:/Users/Ernesto.Rodriguez/.m2/repository/com/fasterxml/jackson/core/jackson-databind/2.10.0/jackson-databind-2.10.0-sources.jar">
+		<attributes>
+			<attribute name="maven.pomderived" value="true"/>
+			<attribute name="org.eclipse.jst.component.archivename" value="jackson-databind-2.10.0.jar"/>
+			<attribute name="maven.groupId" value="com.fasterxml.jackson.core"/>
+			<attribute name="maven.artifactId" value="jackson-databind"/>
+			<attribute name="maven.version" value="2.10.0"/>
+			<attribute name="maven.scope" value="compile"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="C:/Users/Ernesto.Rodriguez/.m2/repository/software/amazon/awssdk/sqs/2.19.6/sqs-2.19.6.jar" sourcepath="C:/Users/Ernesto.Rodriguez/.m2/repository/software/amazon/awssdk/sqs/2.19.6/sqs-2.19.6-sources.jar">
+		<attributes>
+			<attribute name="maven.pomderived" value="true"/>
+			<attribute name="org.eclipse.jst.component.archivename" value="sqs-2.19.6.jar"/>
+			<attribute name="maven.groupId" value="software.amazon.awssdk"/>
+			<attribute name="maven.artifactId" value="sqs"/>
+			<attribute name="maven.version" value="2.19.6"/>
+			<attribute name="maven.scope" value="compile"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="C:/Users/Ernesto.Rodriguez/.m2/repository/software/amazon/awssdk/auth/2.19.6/auth-2.19.6.jar" sourcepath="C:/Users/Ernesto.Rodriguez/.m2/repository/software/amazon/awssdk/auth/2.19.6/auth-2.19.6-sources.jar">
+		<attributes>
+			<attribute name="maven.pomderived" value="true"/>
+			<attribute name="org.eclipse.jst.component.archivename" value="auth-2.19.6.jar"/>
+			<attribute name="maven.groupId" value="software.amazon.awssdk"/>
+			<attribute name="maven.artifactId" value="auth"/>
+			<attribute name="maven.version" value="2.19.6"/>
+			<attribute name="maven.scope" value="compile"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="C:/Users/Ernesto.Rodriguez/.m2/repository/joda-time/joda-time/2.12.5/joda-time-2.12.5.jar" sourcepath="C:/Users/Ernesto.Rodriguez/.m2/repository/joda-time/joda-time/2.12.5/joda-time-2.12.5-sources.jar">
+		<attributes>
+			<attribute name="maven.pomderived" value="true"/>
+			<attribute name="org.eclipse.jst.component.archivename" value="joda-time-2.12.5.jar"/>
+			<attribute name="maven.groupId" value="joda-time"/>
+			<attribute name="maven.artifactId" value="joda-time"/>
+			<attribute name="maven.version" value="2.12.5"/>
+			<attribute name="maven.scope" value="compile"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

@@ -33,13 +33,35 @@
   </properties>
 
   <dependencies>
-    <dependency>
+<dependency>
       <groupId>org.apache.openejb</groupId>
       <artifactId>javaee-api</artifactId>
       <version>6.0-6</version>
       <scope>provided</scope>
     </dependency>
-
+<dependency>
+    <groupId>software.amazon.awssdk</groupId>
+    <artifactId>sqs</artifactId>
+    <version>2.19.6</version>
+</dependency>    
+<dependency>
+    <groupId>org.apache.commons</groupId>
+    <artifactId>commons-email</artifactId>
+    <version>1.2</version>
+</dependency>	
+<dependency>
+	<groupId>joda-time</groupId>
+	<artifactId>joda-time</artifactId>
+	<version>2.3</version>
+</dependency>
+  <dependency>
+    <groupId>com.fasterxml.jackson.jaxrs</groupId>
+    <artifactId>jackson-jaxrs-json-provider</artifactId>
+    <version>2.10.0</version>
+</dependency>		
+		<!-- https://mvnrepository.com/artifact/software.amazon.awssdk/aws-sdk-java -->
+	
+		
     <!-- to test with TomEE and Arquillian
     <dependency>
       <groupId>org.apache.openejb</groupId>
@@ -123,18 +145,21 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <configuration>
-          <source>1.7</source>
-          <target>1.7</target>
-        </configuration>
+        <version>3.8.1</version>
+  <configuration>
+    <source>1.8</source>
+    <target>1.8</target>
+  </configuration>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.21.0</version>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-war-plugin</artifactId>
+        <version>3.3.1</version>
         <configuration>
           <failOnMissingWebXml>false</failOnMissingWebXml>
         </configuration>
@@ -155,15 +180,7 @@
           <addDefaultConstructor>true</addDefaultConstructor>
           <enforcePropertyRestrictions>true</enforcePropertyRestrictions>
         </configuration>
-        <executions>
-          <execution>
-            <id>enhancer</id>
-            <phase>process-classes</phase>
-            <goals>
-              <goal>enhance</goal>
-            </goals>
-          </execution>
-        </executions>
+        
         <dependencies>
           <dependency>
             <groupId>org.apache.openjpa</groupId>
@@ -174,6 +191,7 @@
         </dependencies>
       </plugin>
     </plugins>
+     <finalName>eSlotInfo_Service</finalName>
   </build>
 
   <repositories>
