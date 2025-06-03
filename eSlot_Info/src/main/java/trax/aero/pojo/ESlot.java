@@ -2,7 +2,9 @@ package trax.aero.pojo;
 
 import java.util.HashMap;
 import java.util.Map;
+
 import javax.annotation.Generated;
+
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -25,8 +27,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 "PLANNED END",
 "REMARKS",
 "LAST MODIFIED",
-"MODIFIED BY",
-"LOCATION"
+"MODIFIED BY"
 })
 @Generated("jsonschema2pojo")
 public class ESlot {
@@ -59,8 +60,6 @@ public class ESlot {
     private String lastModified;
     @JsonProperty("MODIFIED BY")
     private String modifiedBy;
-    @JsonProperty("LOCATION")
-    private String location;
     @JsonIgnore
     private Map<String, Object> additionalProperties = new HashMap<String, Object>();
     
@@ -192,16 +191,6 @@ public class ESlot {
     @JsonProperty("MODIFIED BY")
     public void setModifiedBy(String modifiedBy) {
         this.modifiedBy = modifiedBy;
-    }
-    
-    @JsonProperty("LOCATION")
-    public String getLocation() {
-        return location;
-    }
-    
-    @JsonProperty("LOCATION")
-    public void setLocation(String location) {
-        this.location = location;
     }
     
     @JsonAnyGetter

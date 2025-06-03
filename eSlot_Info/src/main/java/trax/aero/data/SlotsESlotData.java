@@ -155,7 +155,7 @@ public class SlotsESlotData {
         if(item.getEslot() != null || checkMinValue(item.getEslot())) {
             
             
-            if (item.getEslot().getLocation() != null) {
+            /*if (item.getEslot().getLocation() != null) {
                 if (!item.getEslot().getLocation().equals("SZB")) {
                     
                     exceuted = "Location is not SZB, skipping processing for BMM TRAX";
@@ -165,7 +165,7 @@ public class SlotsESlotData {
             } else {
                 
                 logger.info("No location specified, assuming BMM TRAX processing");
-            }
+            }*/
             
             try {
                 wo = em.createQuery("Select w From Wo w where w.cosl = :exRef", Wo.class)
