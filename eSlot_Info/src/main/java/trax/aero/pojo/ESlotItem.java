@@ -12,22 +12,22 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({
-"ESLOT"
+"AMIS"
 })
 @Generated("jsonschema2pojo")
 public class ESlotItem {
 
-    @JsonProperty("ESLOT")
+    @JsonProperty("AMIS")
     private ESlot eslot;
     @JsonIgnore
     private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
-    @JsonProperty("ESLOT")
+    @JsonProperty("AMIS")
     public ESlot getEslot() {
         return eslot;
     }
 
-    @JsonProperty("ESLOT")
+    @JsonProperty("AMIS")
     public void setEslot(ESlot eslot) {
         this.eslot = eslot;
     }
