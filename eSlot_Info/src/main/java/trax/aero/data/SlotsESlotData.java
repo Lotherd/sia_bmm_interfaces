@@ -204,7 +204,10 @@ public class SlotsESlotData {
                 SlotsESlotController.addError(exceuted);
                 return;
             } else {
-                wo.setAc(item.getEslot().getACReg());
+            	String ac = item.getEslot().getACReg();
+                wo.setAc(ac);
+                wo.setAcType(getAcType(ac));
+                wo.setAcSeries(getAcSeries(ac));
             }
             
             if (getCategory(item.getEslot().getCheckType()) == null) {
@@ -677,6 +680,34 @@ public class SlotsESlotData {
             // Silent exception handling
         }
         return " ";
+    }
+    
+    private String getAcType(String AC) {
+        try {
+            AcMaster acMaster = em.createQuery("Select a From AcMaster a where a.id.ac = :airC", AcMaster.class)
+                    .setParameter("airC", AC)
+                    .getSingleResult();
+            
+            return acMaster.getAcType(); 
+        }
+        catch (Exception e) {
+            
+        }
+        return "";
+    }
+
+    private String getAcSeries(String AC) {
+        try {
+            AcMaster acMaster = em.createQuery("Select a From AcMaster a where a.id.ac = :airC", AcMaster.class)
+                    .setParameter("airC", AC)
+                    .getSingleResult();
+            
+            return acMaster.getAcSeries(); 
+        }
+        catch (Exception e) {
+            
+        }
+        return "";
     }
     
     /**
