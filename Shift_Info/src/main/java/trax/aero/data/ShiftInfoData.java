@@ -31,7 +31,7 @@ public class ShiftInfoData {
     private EntityManagerFactory factory;
     private EntityManager em;
     private String executed = "OK";
-    
+   
     static Logger logger = LogManager.getLogger("ShiftInfo_I02");
     
     public ShiftInfoData() {
