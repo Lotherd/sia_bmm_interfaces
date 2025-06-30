@@ -122,53 +122,159 @@ public class ShiftInfoData {
         
         String selectSql =
                 "SELECT " +
-                "  dsp.DAY_PATTERN            AS SHIFTDAILYCODE, " +
-                "  'SIABMM'                   AS COMPANY_CODE, " +
-                "  TO_CHAR(TO_DATE(dsp.DAY_START_HOUR || ':' || dsp.DAY_START_MINUTE, 'HH24:MI'), 'HH24:MI') AS START_TIME, " +
-                "  TO_CHAR(TO_DATE((dsp.DAY_START_HOUR + dsp.DAY_WORK_HOURS) || ':' || dsp.DAY_START_MINUTE, 'HH24:MI'), 'HH24:MI') AS ENDTIME, " +
-                "  dsp.DAY_WORK_HOURS         AS PRODUCTIVEHOURS, " +
-                "  sp.DAY_PATTERN_1           AS DAYTYPE, " +
-                "  dsp.NOTES                  AS REMARK, " +
-                "  '1'                        AS IS_ACTIVE, " +
-                "  'N'                        AS HALFDAY, " +
-                "  TO_CHAR(TO_DATE(dsp.BREAK_01_START_HOUR || ':' || dsp.BREAK_01_START_MINUTE, 'HH24:MI'), 'HH24:MI') AS BREAK_STARTTIME_1, " +
-                "  TO_CHAR(TO_DATE((dsp.BREAK_01_START_HOUR + dsp.BREAK_01) || ':' || dsp.BREAK_01_START_MINUTE, 'HH24:MI'), 'HH24:MI') AS BREAK_ENDTIME_1, " +
-                "  TO_CHAR(TO_DATE(dsp.BREAK_02_START_HOUR || ':' || dsp.BREAK_02_START_MINUTE, 'HH24:MI'), 'HH24:MI') AS BREAK_STARTTIME_2, " +
-                "  TO_CHAR(TO_DATE((dsp.BREAK_02_START_HOUR + dsp.BREAK_02) || ':' || dsp.BREAK_02_START_MINUTE, 'HH24:MI'), 'HH24:MI') AS BREAK_ENDTIME_2, " +
-                "  TO_CHAR(TO_DATE(dsp.BREAK_03_START_HOUR || ':' || dsp.BREAK_03_START_MINUTE, 'HH24:MI'), 'HH24:MI') AS BREAK_STARTTIME_3, " +
-                "  TO_CHAR(TO_DATE((dsp.BREAK_03_START_HOUR + dsp.BREAK_03) || ':' || dsp.BREAK_03_START_MINUTE, 'HH24:MI'), 'HH24:MI') AS BREAK_ENDTIME_3, " +
-                "  TO_CHAR(TO_DATE(dsp.BREAK_04_START_HOUR || ':' || dsp.BREAK_04_START_MINUTE, 'HH24:MI'), 'HH24:MI') AS BREAK_STARTTIME_4, " +
-                "  TO_CHAR(TO_DATE((dsp.BREAK_04_START_HOUR + dsp.BREAK_04) || ':' || dsp.BREAK_04_START_MINUTE, 'HH24:MI'), 'HH24:MI') AS BREAK_ENDTIME_4, " +
-                "  TO_CHAR(TO_DATE(dsp.BREAK_05_START_HOUR || ':' || dsp.BREAK_05_START_MINUTE, 'HH24:MI'), 'HH24:MI') AS BREAK_STARTTIME_5, " +
-                "  TO_CHAR(TO_DATE((dsp.BREAK_05_START_HOUR + dsp.BREAK_05) || ':' || dsp.BREAK_05_START_MINUTE, 'HH24:MI'), 'HH24:MI') AS BREAK_ENDTIME_5, " +
-                "  TO_CHAR(TO_DATE(dsp.BREAK_06_START_HOUR || ':' || dsp.BREAK_06_START_MINUTE, 'HH24:MI'), 'HH24:MI') AS BREAK_STARTTIME_6, " +
-                "  TO_CHAR(TO_DATE((dsp.BREAK_06_START_HOUR + dsp.BREAK_06) || ':' || dsp.BREAK_06_START_MINUTE, 'HH24:MI'), 'HH24:MI') AS BREAK_ENDTIME_6, " +
-                "  sp.PATTERN                 AS SHIFTGROUPCODE, " +
-                "  CASE " +
-                "    WHEN sp.PATTERN LIKE '%D_%H_%' THEN " +
-                "      REPLACE(" +
-                "        REPLACE(sp.PATTERN, 'D_', ' Days '), " +
-                "        'H_', 'H Work ' " +
-                "      ) " +
-                "    ELSE sp.PATTERN " +
-                "  END                         AS SHIFTGROUPNAME, " +
-                "  'SIABMM'                   AS COMPANY_CODE_1, " +
-                "  sp.TYPE                    AS TOTALDAYS, " +
-                "  '1'                        AS IS_ACTIVE_1, " +
-                "  sp.DAY_PATTERN_1           AS SHIFTDAILYCODE_1, " +
-                "  sp.DAY_PATTERN_2           AS SHIFTDAILYCODE_2, " +
-                "  sp.DAY_PATTERN_3           AS SHIFTDAILYCODE_3, " +
-                "  sp.DAY_PATTERN_4           AS SHIFTDAILYCODE_4, " +
-                "  sp.DAY_PATTERN_5           AS SHIFTDAILYCODE_5, " +
-                "  sp.DAY_PATTERN_6           AS SHIFTDAILYCODE_6, " +
-                "  sp.DAY_PATTERN_7           AS SHIFTDAILYCODE_7 " +
-                "FROM daily_shift_pattern dsp " +
-                "JOIN shift_pattern sp ON dsp.DAY_PATTERN = sp.DAY_PATTERN_1 " +
-                "WHERE sp.DAY_PATTERN_2          IS NULL " +
-                "  AND sp.BMM_INTERFACE_DATE     IS NULL " +
-                "  AND sp.BMM_INTERFACE_FLAG     IS NULL " +
-                "  AND dsp.BMM_INTERFACE_DATE    IS NULL " +
-                "  AND dsp.BMM_INTERFACE_FLAG    IS NULL";
+                        "  dsp.DAY_PATTERN            AS SHIFTDAILYCODE, " +
+                        "  'SIABMM'                   AS COMPANY_CODE, " +
+                        "  -- Validate minutes are between 0-59 for start time " +
+                        "  CASE " +
+                        "    WHEN dsp.DAY_START_MINUTE BETWEEN 0 AND 59 " +
+                        "     AND dsp.DAY_START_HOUR BETWEEN 0 AND 23 THEN " +
+                        "      TO_CHAR(TO_DATE(LPAD(dsp.DAY_START_HOUR, 2, '0') || ':' || LPAD(dsp.DAY_START_MINUTE, 2, '0'), 'HH24:MI'), 'HH24:MI') " +
+                        "    ELSE NULL " +
+                        "  END AS START_TIME, " +
+                        "  -- Validate minutes and hours for end time calculation " +
+                        "  CASE " +
+                        "    WHEN dsp.DAY_START_MINUTE BETWEEN 0 AND 59 " +
+                        "     AND dsp.DAY_START_HOUR BETWEEN 0 AND 23 " +
+                        "     AND (dsp.DAY_START_HOUR + dsp.DAY_WORK_HOURS) <= 23 THEN " +
+                        "      TO_CHAR(TO_DATE(LPAD(dsp.DAY_START_HOUR + dsp.DAY_WORK_HOURS, 2, '0') || ':' || LPAD(dsp.DAY_START_MINUTE, 2, '0'), 'HH24:MI'), 'HH24:MI') " +
+                        "    WHEN dsp.DAY_START_MINUTE BETWEEN 0 AND 59 " +
+                        "     AND dsp.DAY_START_HOUR BETWEEN 0 AND 23 THEN " +
+                        "      -- Handle hour overflow by using date arithmetic " +
+                        "      TO_CHAR(TO_DATE('00:00', 'HH24:MI') + (dsp.DAY_START_HOUR + dsp.DAY_WORK_HOURS)/24 + dsp.DAY_START_MINUTE/(24*60), 'HH24:MI') " +
+                        "    ELSE NULL " +
+                        "  END AS ENDTIME, " +
+                        "  dsp.DAY_WORK_HOURS         AS PRODUCTIVEHOURS, " +
+                        "  sp.DAY_PATTERN_1           AS DAYTYPE, " +
+                        "  dsp.NOTES                  AS REMARK, " +
+                        "  '1'                        AS IS_ACTIVE, " +
+                        "  'N'                        AS HALFDAY, " +
+                        "  -- Break 1 times with validation " +
+                        "  CASE " +
+                        "    WHEN dsp.BREAK_01_START_MINUTE BETWEEN 0 AND 59 " +
+                        "     AND dsp.BREAK_01_START_HOUR BETWEEN 0 AND 23 THEN " +
+                        "      TO_CHAR(TO_DATE(LPAD(dsp.BREAK_01_START_HOUR, 2, '0') || ':' || LPAD(dsp.BREAK_01_START_MINUTE, 2, '0'), 'HH24:MI'), 'HH24:MI') " +
+                        "    ELSE NULL " +
+                        "  END AS BREAK_STARTTIME_1, " +
+                        "  CASE " +
+                        "    WHEN dsp.BREAK_01_START_MINUTE BETWEEN 0 AND 59 " +
+                        "     AND dsp.BREAK_01_START_HOUR BETWEEN 0 AND 23 " +
+                        "     AND (dsp.BREAK_01_START_HOUR + dsp.BREAK_01) <= 23 THEN " +
+                        "      TO_CHAR(TO_DATE(LPAD(dsp.BREAK_01_START_HOUR + dsp.BREAK_01, 2, '0') || ':' || LPAD(dsp.BREAK_01_START_MINUTE, 2, '0'), 'HH24:MI'), 'HH24:MI') " +
+                        "    WHEN dsp.BREAK_01_START_MINUTE BETWEEN 0 AND 59 " +
+                        "     AND dsp.BREAK_01_START_HOUR BETWEEN 0 AND 23 THEN " +
+                        "      TO_CHAR(TO_DATE('00:00', 'HH24:MI') + (dsp.BREAK_01_START_HOUR + dsp.BREAK_01)/24 + dsp.BREAK_01_START_MINUTE/(24*60), 'HH24:MI') " +
+                        "    ELSE NULL " +
+                        "  END AS BREAK_ENDTIME_1, " +
+                        "  -- Break 2 times with validation " +
+                        "  CASE " +
+                        "    WHEN dsp.BREAK_02_START_MINUTE BETWEEN 0 AND 59 " +
+                        "     AND dsp.BREAK_02_START_HOUR BETWEEN 0 AND 23 THEN " +
+                        "      TO_CHAR(TO_DATE(LPAD(dsp.BREAK_02_START_HOUR, 2, '0') || ':' || LPAD(dsp.BREAK_02_START_MINUTE, 2, '0'), 'HH24:MI'), 'HH24:MI') " +
+                        "    ELSE NULL " +
+                        "  END AS BREAK_STARTTIME_2, " +
+                        "  CASE " +
+                        "    WHEN dsp.BREAK_02_START_MINUTE BETWEEN 0 AND 59 " +
+                        "     AND dsp.BREAK_02_START_HOUR BETWEEN 0 AND 23 " +
+                        "     AND (dsp.BREAK_02_START_HOUR + dsp.BREAK_02) <= 23 THEN " +
+                        "      TO_CHAR(TO_DATE(LPAD(dsp.BREAK_02_START_HOUR + dsp.BREAK_02, 2, '0') || ':' || LPAD(dsp.BREAK_02_START_MINUTE, 2, '0'), 'HH24:MI'), 'HH24:MI') " +
+                        "    WHEN dsp.BREAK_02_START_MINUTE BETWEEN 0 AND 59 " +
+                        "     AND dsp.BREAK_02_START_HOUR BETWEEN 0 AND 23 THEN " +
+                        "      TO_CHAR(TO_DATE('00:00', 'HH24:MI') + (dsp.BREAK_02_START_HOUR + dsp.BREAK_02)/24 + dsp.BREAK_02_START_MINUTE/(24*60), 'HH24:MI') " +
+                        "    ELSE NULL " +
+                        "  END AS BREAK_ENDTIME_2, " +
+                        "  -- Break 3 times with validation " +
+                        "  CASE " +
+                        "    WHEN dsp.BREAK_03_START_MINUTE BETWEEN 0 AND 59 " +
+                        "     AND dsp.BREAK_03_START_HOUR BETWEEN 0 AND 23 THEN " +
+                        "      TO_CHAR(TO_DATE(LPAD(dsp.BREAK_03_START_HOUR, 2, '0') || ':' || LPAD(dsp.BREAK_03_START_MINUTE, 2, '0'), 'HH24:MI'), 'HH24:MI') " +
+                        "    ELSE NULL " +
+                        "  END AS BREAK_STARTTIME_3, " +
+                        "  CASE " +
+                        "    WHEN dsp.BREAK_03_START_MINUTE BETWEEN 0 AND 59 " +
+                        "     AND dsp.BREAK_03_START_HOUR BETWEEN 0 AND 23 " +
+                        "     AND (dsp.BREAK_03_START_HOUR + dsp.BREAK_03) <= 23 THEN " +
+                        "      TO_CHAR(TO_DATE(LPAD(dsp.BREAK_03_START_HOUR + dsp.BREAK_03, 2, '0') || ':' || LPAD(dsp.BREAK_03_START_MINUTE, 2, '0'), 'HH24:MI'), 'HH24:MI') " +
+                        "    WHEN dsp.BREAK_03_START_MINUTE BETWEEN 0 AND 59 " +
+                        "     AND dsp.BREAK_03_START_HOUR BETWEEN 0 AND 23 THEN " +
+                        "      TO_CHAR(TO_DATE('00:00', 'HH24:MI') + (dsp.BREAK_03_START_HOUR + dsp.BREAK_03)/24 + dsp.BREAK_03_START_MINUTE/(24*60), 'HH24:MI') " +
+                        "    ELSE NULL " +
+                        "  END AS BREAK_ENDTIME_3, " +
+                        "  -- Break 4 times with validation " +
+                        "  CASE " +
+                        "    WHEN dsp.BREAK_04_START_MINUTE BETWEEN 0 AND 59 " +
+                        "     AND dsp.BREAK_04_START_HOUR BETWEEN 0 AND 23 THEN " +
+                        "      TO_CHAR(TO_DATE(LPAD(dsp.BREAK_04_START_HOUR, 2, '0') || ':' || LPAD(dsp.BREAK_04_START_MINUTE, 2, '0'), 'HH24:MI'), 'HH24:MI') " +
+                        "    ELSE NULL " +
+                        "  END AS BREAK_STARTTIME_4, " +
+                        "  CASE " +
+                        "    WHEN dsp.BREAK_04_START_MINUTE BETWEEN 0 AND 59 " +
+                        "     AND dsp.BREAK_04_START_HOUR BETWEEN 0 AND 23 " +
+                        "     AND (dsp.BREAK_04_START_HOUR + dsp.BREAK_04) <= 23 THEN " +
+                        "      TO_CHAR(TO_DATE(LPAD(dsp.BREAK_04_START_HOUR + dsp.BREAK_04, 2, '0') || ':' || LPAD(dsp.BREAK_04_START_MINUTE, 2, '0'), 'HH24:MI'), 'HH24:MI') " +
+                        "    WHEN dsp.BREAK_04_START_MINUTE BETWEEN 0 AND 59 " +
+                        "     AND dsp.BREAK_04_START_HOUR BETWEEN 0 AND 23 THEN " +
+                        "      TO_CHAR(TO_DATE('00:00', 'HH24:MI') + (dsp.BREAK_04_START_HOUR + dsp.BREAK_04)/24 + dsp.BREAK_04_START_MINUTE/(24*60), 'HH24:MI') " +
+                        "    ELSE NULL " +
+                        "  END AS BREAK_ENDTIME_4, " +
+                        "  -- Break 5 times with validation " +
+                        "  CASE " +
+                        "    WHEN dsp.BREAK_05_START_MINUTE BETWEEN 0 AND 59 " +
+                        "     AND dsp.BREAK_05_START_HOUR BETWEEN 0 AND 23 THEN " +
+                        "      TO_CHAR(TO_DATE(LPAD(dsp.BREAK_05_START_HOUR, 2, '0') || ':' || LPAD(dsp.BREAK_05_START_MINUTE, 2, '0'), 'HH24:MI'), 'HH24:MI') " +
+                        "    ELSE NULL " +
+                        "  END AS BREAK_STARTTIME_5, " +
+                        "  CASE " +
+                        "    WHEN dsp.BREAK_05_START_MINUTE BETWEEN 0 AND 59 " +
+                        "     AND dsp.BREAK_05_START_HOUR BETWEEN 0 AND 23 " +
+                        "     AND (dsp.BREAK_05_START_HOUR + dsp.BREAK_05) <= 23 THEN " +
+                        "      TO_CHAR(TO_DATE(LPAD(dsp.BREAK_05_START_HOUR + dsp.BREAK_05, 2, '0') || ':' || LPAD(dsp.BREAK_05_START_MINUTE, 2, '0'), 'HH24:MI'), 'HH24:MI') " +
+                        "    WHEN dsp.BREAK_05_START_MINUTE BETWEEN 0 AND 59 " +
+                        "     AND dsp.BREAK_05_START_HOUR BETWEEN 0 AND 23 THEN " +
+                        "      TO_CHAR(TO_DATE('00:00', 'HH24:MI') + (dsp.BREAK_05_START_HOUR + dsp.BREAK_05)/24 + dsp.BREAK_05_START_MINUTE/(24*60), 'HH24:MI') " +
+                        "    ELSE NULL " +
+                        "  END AS BREAK_ENDTIME_5, " +
+                        "  -- Break 6 times with validation " +
+                        "  CASE " +
+                        "    WHEN dsp.BREAK_06_START_MINUTE BETWEEN 0 AND 59 " +
+                        "     AND dsp.BREAK_06_START_HOUR BETWEEN 0 AND 23 THEN " +
+                        "      TO_CHAR(TO_DATE(LPAD(dsp.BREAK_06_START_HOUR, 2, '0') || ':' || LPAD(dsp.BREAK_06_START_MINUTE, 2, '0'), 'HH24:MI'), 'HH24:MI') " +
+                        "    ELSE NULL " +
+                        "  END AS BREAK_STARTTIME_6, " +
+                        "  CASE " +
+                        "    WHEN dsp.BREAK_06_START_MINUTE BETWEEN 0 AND 59 " +
+                        "     AND dsp.BREAK_06_START_HOUR BETWEEN 0 AND 23 " +
+                        "     AND (dsp.BREAK_06_START_HOUR + dsp.BREAK_06) <= 23 THEN " +
+                        "      TO_CHAR(TO_DATE(LPAD(dsp.BREAK_06_START_HOUR + dsp.BREAK_06, 2, '0') || ':' || LPAD(dsp.BREAK_06_START_MINUTE, 2, '0'), 'HH24:MI'), 'HH24:MI') " +
+                        "    WHEN dsp.BREAK_06_START_MINUTE BETWEEN 0 AND 59 " +
+                        "     AND dsp.BREAK_06_START_HOUR BETWEEN 0 AND 23 THEN " +
+                        "      TO_CHAR(TO_DATE('00:00', 'HH24:MI') + (dsp.BREAK_06_START_HOUR + dsp.BREAK_06)/24 + dsp.BREAK_06_START_MINUTE/(24*60), 'HH24:MI') " +
+                        "    ELSE NULL " +
+                        "  END AS BREAK_ENDTIME_6, " +
+                        "  sp.PATTERN                 AS SHIFTGROUPCODE, " +
+                        "  CASE " +
+                        "    WHEN sp.PATTERN LIKE '%D_%H_%' THEN " +
+                        "      REPLACE( " +
+                        "        REPLACE(sp.PATTERN, 'D_', ' Days '), " +
+                        "        'H_', 'H Work ' " +
+                        "      ) " +
+                        "    ELSE sp.PATTERN " +
+                        "  END                         AS SHIFTGROUPNAME, " +
+                        "  'SIABMM'                   AS COMPANY_CODE_1, " +
+                        "  sp.TYPE                    AS TOTALDAYS, " +
+                        "  '1'                        AS IS_ACTIVE_1, " +
+                        "  sp.DAY_PATTERN_1           AS SHIFTDAILYCODE_1, " +
+                        "  sp.DAY_PATTERN_2           AS SHIFTDAILYCODE_2, " +
+                        "  sp.DAY_PATTERN_3           AS SHIFTDAILYCODE_3, " +
+                        "  sp.DAY_PATTERN_4           AS SHIFTDAILYCODE_4, " +
+                        "  sp.DAY_PATTERN_5           AS SHIFTDAILYCODE_5, " +
+                        "  sp.DAY_PATTERN_6           AS SHIFTDAILYCODE_6, " +
+                        "  sp.DAY_PATTERN_7           AS SHIFTDAILYCODE_7 " +
+                        "FROM daily_shift_pattern dsp " +
+                        "JOIN shift_pattern sp ON dsp.DAY_PATTERN = sp.DAY_PATTERN_1 " +
+                        "WHERE sp.BMM_INTERFACE_DATE     IS NULL " +
+                        "  AND sp.BMM_INTERFACE_FLAG     IS NULL " +
+                        "  AND dsp.BMM_INTERFACE_DATE    IS NULL " +
+                        "  AND dsp.BMM_INTERFACE_FLAG    IS NULL";
 
             String updateDailySql =
                 "UPDATE daily_shift_pattern " +
