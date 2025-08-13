@@ -106,10 +106,9 @@ public class RunAble implements Runnable {
         List<String[]> data = new ArrayList<String[]>();
         String[] header = {"EMPLOYEE_ID","RELATION_CODE","FULL_NAME","FIRST_NAME","LAST_NAME","RELATED_LOCATION",
                           "POSITION_CODE","POSITION","DATE_OF_BIRTH","DEPARTMENT","DEPARTMENT_DESCRIPTION",
-                          "DIVISION","DIVISION_DESCRIPTION","MAIL_PHONE","MAIL_EMAIL","BIRTHDATE",
+                          "DIVISION","DIVISION_DESCRIPTION","MAIL_PHONE","MAIL_EMAIL",
                           "DATE_HIRED","DATE_TERMINATED","PROFILE","COMPANY_NAME","COST_CODE",
-                          "SKILL","SKILL_DESCIPTION","RELATION_CATEGORY DESCRIPTION","GRADE_CODE","STATUS",
-                          "CREATED_DATE","MODIFIED_DATE"};
+                          "SKILL","SKILL_DESCIPTION","GRADE_CODE","STATUS"};
         data.add(header);
         
         for(EmployeeInfo e : employeeFailure) {
@@ -163,44 +162,32 @@ public class RunAble implements Runnable {
         	if(e.getMailEmail() != null && !e.getMailEmail().isEmpty()) {
         		arr[14] = e.getMailEmail();
         	}
-        	if(e.getBirthdate() != null && !e.getBirthdate().isEmpty()) {
-        		arr[15] = e.getBirthdate();
-        	}
         	if(e.getDateHired() != null && !e.getDateHired().isEmpty()) {
-        		arr[16] = e.getDateHired();
+        		arr[15] = e.getDateHired();
         	}
         	if(e.getDateTerminated() != null && !e.getDateTerminated().isEmpty()) {
-        		arr[17] = e.getDateTerminated();
+        		arr[16] = e.getDateTerminated();
         	}
         	if(e.getProfile() != null && !e.getProfile().isEmpty()) {
-        		arr[18] = e.getProfile();
+        		arr[17] = e.getProfile();
         	}
         	if(e.getCompanyName() != null && !e.getCompanyName().isEmpty()) {
-        		arr[19] = e.getCompanyName();
+        		arr[18] = e.getCompanyName();
         	}
         	if(e.getCostCode() != null && !e.getCostCode().isEmpty()) {
-        		arr[20] = e.getCostCode();
+        		arr[19] = e.getCostCode();
         	}
         	if(e.getSkill() != null && !e.getSkill().isEmpty()) {
-        		arr[21] = e.getSkill();
+        		arr[20] = e.getSkill();
         	}
         	if(e.getSkillDescription() != null && !e.getSkillDescription().isEmpty()) {
-        		arr[22] = e.getSkillDescription();
-        	}
-        	if(e.getRelationCategoryDescription() != null && !e.getRelationCategoryDescription().isEmpty()) {
-        		arr[23] = e.getRelationCategoryDescription();
+        		arr[21] = e.getSkillDescription();
         	}
         	if(e.getGradeCode() != null && !e.getGradeCode().isEmpty()) {
-        		arr[24] = e.getGradeCode();
+        		arr[22] = e.getGradeCode();
         	}
         	if(e.getStatus() != null && !e.getStatus().isEmpty()) {
-        		arr[25] = e.getStatus();
-        	}
-        	if(e.getCreatedDate() != null && !e.getCreatedDate().isEmpty()) {
-        		arr[26] = e.getCreatedDate();
-        	}
-        	if(e.getModifiedDate() != null && !e.getModifiedDate().isEmpty()) {
-        		arr[27] = e.getModifiedDate();
+        		arr[23] = e.getStatus();
         	}
         	
         	data.add(arr);
@@ -337,88 +324,76 @@ public class RunAble implements Runnable {
 							for (String cell : row) {	            	
 								 
 								if(itr == 0) {
-									employee.setEmployeeId(cell);
+									employee.setEmployeeId(cell);           // EMPLOYEE_ID
 								}
 								if(itr == 1) {
-									employee.setRelationCode(cell);
+									employee.setRelationCode(cell);         // RELATION_CODE
 								}
 								if(itr == 2) {
-									employee.setFullName(cell);
+									employee.setFullName(cell);             // FULL_NAME
 								}
 								if(itr == 3) {
-									employee.setFirstName(cell);
+									employee.setFirstName(cell);            // FIRST_NAME
 								}
 								if(itr == 4) {
-									employee.setLastName(cell);
+									employee.setLastName(cell);             // LAST_NAME
 								}
 								if(itr == 5) {
-									employee.setRelatedLocation(cell);
+									employee.setRelatedLocation(cell);      // RELATED_LOCATION
 								}
 								if(itr == 6) {
-									employee.setPositionCode(cell);
+									employee.setPositionCode(cell);         // POSITION_CODE
 								}
 								if(itr == 7) {
-									employee.setPosition(cell);
+									employee.setPosition(cell);             // POSITION
 								}
 								if(itr == 8) {
-									employee.setDateOfBirth(cell);
+									employee.setDateOfBirth(cell);          // DATE_OF_BIRTH
 								}
 								if(itr == 9) {
-									employee.setDepartment(cell);
+									employee.setDepartment(cell);           // DEPARTMENT
 								}
 								if(itr == 10) {
-									employee.setDepartmentDescription(cell);
+									employee.setDepartmentDescription(cell); // DEPARTMENT_DESCRIPTION
 								}
 								if(itr == 11) {
-									employee.setDivision(cell);
+									employee.setDivision(cell);             // DIVISION
 								}
 								if(itr == 12) {
-									employee.setDivisionDescription(cell);
+									employee.setDivisionDescription(cell);  // DIVISION_DESCRIPTION
 								}
 								if(itr == 13) {
-									employee.setMailPhone(cell);
+									employee.setMailPhone(cell);            // MAIL_PHONE
 								}
 								if(itr == 14) {
-									employee.setMailEmail(cell);
+									employee.setMailEmail(cell);            // MAIL_EMAIL
 								}
 								if(itr == 15) {
-									employee.setBirthdate(cell);
+									employee.setDateHired(cell);            // DATE_HIRED 
 								}
 								if(itr == 16) {
-									employee.setDateHired(cell);
+									employee.setDateTerminated(cell);       // DATE_TERMINATED 
 								}
 								if(itr == 17) {
-									employee.setDateTerminated(cell);
+									employee.setProfile(cell);              // PROFILE 
 								}
 								if(itr == 18) {
-									employee.setProfile(cell);
+									employee.setCompanyName(cell);          // COMPANY_NAME 
 								}
 								if(itr == 19) {
-									employee.setCompanyName(cell);
+									employee.setCostCode(cell);             // COST_CODE 
 								}
 								if(itr == 20) {
-									employee.setCostCode(cell);
+									employee.setSkill(cell);                // SKILL
 								}
 								if(itr == 21) {
-									employee.setSkill(cell);
+									employee.setSkillDescription(cell);     // SKILL_DESCRIPTION
 								}
 								if(itr == 22) {
-									employee.setSkillDescription(cell);
+									employee.setGradeCode(cell);            // GRADE_CODE
 								}
 								if(itr == 23) {
-									employee.setRelationCategoryDescription(cell);
-								}
-								if(itr == 24) {
-									employee.setGradeCode(cell);
-								}
-								if(itr == 25) {
-									employee.setStatus(cell);
-								}
-								if(itr == 26) {
-									employee.setCreatedDate(cell);
-								}
-								if(itr == 27) {
-									employee.setModifiedDate(cell);
+									employee.setStatus(cell);               // STATUS
 								}
 								
 								itr++;				                
