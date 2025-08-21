@@ -72,7 +72,132 @@ public class EmployeeInfoData {
         .parseDefaulting(ChronoField.MINUTE_OF_HOUR, 0)
         .toFormatter();
     
+    /**
+     * Searches for an company transcode in the database and takes appropriate action
+     * 
+     * This method checks if an transcode exists by relation code and then calls 
+     * insertEmployee if the results returns 0.
+     * 
+     * @param e The EmployeeInfo object containing company details
+     * @return A string indicating the result of the operation ("OK" or error message)
+     */
+   	public String findTranscodeCompany(EmployeeInfo e) {
+   		executed = "OK";
+   		
+   		if (!checkMinValue(e)) {
+            executed = "Cannot find Transacode due to missing required field: company ";
+            logger.severe(executed);
+            EmployeeInfoController.addError(executed);
+            return executed;
+        }
+   		
+   		try {
+            // Log the relation code we're checking for debugging purposes
+            logger.info("Checking if transcode exists with company: " + e.getCostCode());
+            
+            // Query to check if the company exists in system_tran_code table
+            String queryStr = "SELECT COUNT(*) FROM system_tran_code " +
+                             "WHERE system_code = ? AND system_transaction = 'ORDERCATEGORY'";
+            
+            PreparedStatement ps = con.prepareStatement(queryStr);
+            ps.setString(1, e.getCostCode());
+            
+            ResultSet rs = ps.executeQuery();
+            int count = 0;
+            
+            if (rs.next()) {
+                count = rs.getInt(1);
+            }
+            
+            rs.close();
+            ps.close();
+            
+            // Log the count for debugging purposes
+            logger.info("Found " + count + " existing records for department: " + e.getCostCode());
+            
+            // If company does not exists, insert a new one
+            if (count > 0) {
+                logger.info("Transcode with company: " + e.getCostCode() + " found. ");
+                return executed;
+            } else {
+                logger.info("Transcode with company: " + e.getCostCode() + " not found. Proceeding to insert.");
+                return insertTrancodeCompany(e);
+            }
+            
+        } catch (Exception ex) {
+            executed = "Error finding department: " + ex.toString();
+            logger.severe(executed);
+            EmployeeInfoController.addError(executed);
+            return executed;
+        }
+		
+   	}
     
+   	/**
+   	 * Inserts a new company transcode into the system_tran_code table
+   	 * 
+   	 * @param e The EmployeeInfo object containing company details
+   	 * @return A string indicating the result of the operation ("OK" or error message)
+   	 */
+   	private String insertTrancodeCompany(EmployeeInfo e) {
+   	    executed = "OK";
+   	    
+   	    // Validate required field
+   	    if (e.getCostCode() == null || e.getCostCode().isEmpty()) {
+   	        executed = "Cannot insert Department TranCode: department cannot be null or empty";
+   	        logger.severe(executed);
+   	        EmployeeInfoController.addError(executed);
+   	        return executed;
+   	    }
+   	    
+   	    EntityTransaction transaction = null;
+   	    
+   	    try {
+   	        // Begin transaction
+   	        transaction = em.getTransaction();
+   	        if (!transaction.isActive()) {
+   	            transaction.begin();
+   	        }
+   	        
+   	        // Prepare the SQL insert query with named parameters
+   	        Query insertQuery = em.createNativeQuery(
+   	            "INSERT INTO SYSTEM_TRAN_CODE (" +
+   	            "  SYSTEM_TRANSACTION, SYSTEM_CODE, SYSTEM_CODE_DESCRIPTION, PN_TRANSACTION, PN_COSTING_METHOD, " +
+   	            "  CREATED_BY, CREATED_DATE, SYSTEM_TRAN_CODE_SUB, STATUS" +
+   	            ") VALUES (" +
+   	            "  'ORDERCATEGORY', :systemCode, :systemCodeDescription, 'C', 'A', " +
+   	            "  'TRAX_IFACE', SYSDATE, 'I01', 'ACTIVE'" +
+   	            ")"
+   	        );
+   	        
+   	        // Set parameters
+   	        insertQuery.setParameter("systemCode", e.getCostCode());
+   	        insertQuery.setParameter("systemCodeDescription", 
+   	            e.getCompanyName() != null ? e.getCompanyName() : e.getCostCode());
+   	        
+   	        // Execute the insert query
+   	        int rowsAffected = insertQuery.executeUpdate();
+   	        
+   	        // Commit the transaction
+   	        transaction.commit();
+   	        
+   	        logger.info("Successfully inserted Company TranCode: " + e.getCostCode() + 
+   	                   " with description: " + (e.getCompanyName() != null ? e.getCompanyName() : e.getCostCode()) + 
+   	                   ". Rows affected: " + rowsAffected);
+   	        
+   	    } catch (Exception ex) {
+   	        // Rollback transaction in case of error
+   	        if (transaction != null && transaction.isActive()) {
+   	            transaction.rollback();
+   	        }
+   	        executed = "Error inserting Company TranCode: " + ex.toString();
+   	        logger.severe(executed);
+   	        EmployeeInfoController.addError(executed);
+   	    }
+   	    
+   	    return executed;
+   	}
+   	
     
     /**
      * Searches for an department transcode in the database and takes appropriate action
@@ -349,7 +474,7 @@ public class EmployeeInfoData {
    		
    		try {
             // Log the relation code we're checking for debugging purposes
-            logger.info("Checking if transcode exists with department: " + e.getPositionCode());
+            logger.info("Checking if transcode exists with position: " + e.getPositionCode());
             
             // Query to check if the position exists in system_tran_code table
             String queryStr = "SELECT COUNT(*) FROM system_tran_code " +
@@ -531,6 +656,15 @@ public class EmployeeInfoData {
                     }
                 }
                 
+                //Check for TranCode - Company
+                if (e.getCostCode() != null && !e.getCostCode().isEmpty()) {
+                    String posResult = findTranscodeCompany(e);
+                    if (!posResult.equals("OK")) {
+                        logger.warning("TranCode validation failed for Company: " + e.getCostCode());
+                        // Continue with insertion even if TranCode validation fails
+                    }
+                }
+                
             // Check if the employee already exists before trying to insert
             String checkQuery = "SELECT COUNT(*) FROM relation_master WHERE relation_code = ? AND relation_transaction = 'EMPLOYEE'";
             PreparedStatement ps = con.prepareStatement(checkQuery);
@@ -567,7 +701,7 @@ public class EmployeeInfoData {
             	            " gst_gl_company, cost_center, status, created_by, created_date," +
             	            " modified_by, modified_date, allow_issue_to) " +
             	            "VALUES (" +
-            	            " :relationCode, 'EMPLOYEE', :fullName, :employeeId, :firstName, :lastName," +
+            	            " :relationCode, 'EMPLOYEE', :fullName, :employeeId, :ldap_username, :firstName, :lastName," +
             	            " :relatedLocation, :position, :department, :division," +
             	            " :mailPhone, :mailEmail, :birthdate, :dateHired, :dateTerminated," +
             	            " :companyName, :costCenter, :status, 'TRAX_IFACE', SYSDATE," +
@@ -577,8 +711,8 @@ public class EmployeeInfoData {
             // Set parameters, handling null values appropriately
             insertQuery.setParameter("relationCode", e.getRelationCode());
             insertQuery.setParameter("fullName", e.getFullName() != null ? e.getFullName() : "");
-            insertQuery.setParameter("employeeId", e.getEmployeeId());
-            insertQuery.setParameter("ldap_username", e.getEmployeeId());
+            insertQuery.setParameter("employeeId", e.getRelationCode());
+            insertQuery.setParameter("ldap_username", e.getEmployeeId() != null ? e.getEmployeeId() : "");
             insertQuery.setParameter("firstName", e.getFirstName() != null ? e.getFirstName() : "");
             insertQuery.setParameter("lastName", e.getLastName() != null ? e.getLastName() : "");
             insertQuery.setParameter("relatedLocation", e.getRelatedLocation() != null ? e.getRelatedLocation() : "");
@@ -705,34 +839,6 @@ public class EmployeeInfoData {
                     : null;
 
             
-                //Check for TranCode - Department
-                if (e.getDepartment() != null && !e.getDepartment().isEmpty()) {
-                    String deptResult = findTranscodeDepartment(e);
-                    if (!deptResult.equals("OK")) {
-                        logger.warning("TranCode validation failed for Department: " + e.getDepartment());
-                        // Continue with insertion even if TranCode validation fails
-                    }
-                }
-                
-                //Check for TranCode - Division
-                if (e.getDivision() != null && !e.getDivision().isEmpty()) {
-                    String divResult = findTranscodeDivision(e);
-                    if (!divResult.equals("OK")) {
-                        logger.warning("TranCode validation failed for Division: " + e.getDivision());
-                        // Continue with insertion even if TranCode validation fails
-                    }
-                }
-                
-                //Check for TranCode - Position
-                if (e.getPosition() != null && !e.getPosition().isEmpty()) {
-                    String posResult = findTrancodePosition(e);
-                    if (!posResult.equals("OK")) {
-                        logger.warning("TranCode validation failed for Position: " + e.getPosition());
-                        // Continue with insertion even if TranCode validation fails
-                    }
-                }   
-                
-            
             // Verify the employee exists in the database
             String checkQuery = "SELECT COUNT(*) FROM relation_master WHERE relation_code = ? AND relation_transaction = 'EMPLOYEE'";
             PreparedStatement ps = con.prepareStatement(checkQuery);
@@ -764,7 +870,7 @@ public class EmployeeInfoData {
             Query updateQuery = em.createNativeQuery(
             		 "UPDATE relation_master SET " +
             	                " name = :fullName, first_name = :firstName, last_name = :lastName, " +
-            	                " ldap_username = :employeeId, employee_id = :employeeId, " +
+            	                " ldap_username = :ldap_username, employee_id = :employeeId, " +
             	                " related_location = :relatedLocation, position = :position, " +
             	                " department = :department, division = :division, " +
             	                " mail_phone = :mailPhone, mail_email = :mailEmail, " +
@@ -780,7 +886,8 @@ public class EmployeeInfoData {
             updateQuery.setParameter("fullName", e.getFullName() != null ? e.getFullName() : "");
             updateQuery.setParameter("firstName", e.getFirstName() != null ? e.getFirstName() : "");
             updateQuery.setParameter("lastName", e.getLastName() != null ? e.getLastName() : "");
-            updateQuery.setParameter("employeeId", e.getEmployeeId() != null ? e.getEmployeeId() : "");
+            updateQuery.setParameter("employeeId", e.getRelationCode());
+            updateQuery.setParameter("ldap_username", e.getEmployeeId() != null ? e.getEmployeeId() : "");
             updateQuery.setParameter("relatedLocation", e.getRelatedLocation() != null ? e.getRelatedLocation() : "");
             updateQuery.setParameter("position", e.getPosition() != null ? e.getPosition() : "");
             updateQuery.setParameter("department", e.getDepartment() != null ? e.getDepartment() : "");
