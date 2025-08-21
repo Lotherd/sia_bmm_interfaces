@@ -17,6 +17,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -48,11 +49,22 @@ public class SlotsESlotData {
     Long woNumber;
     EntityManagerFactory factory;
     EntityManager em;
-    String exceuted;
+    String executed;
     public String WO;
     private Connection con;
     Logger logger = LogManager.getLogger("SlotsESlot_I31");
     public InterfaceLockMaster lock;
+    
+    // Input validation patterns
+    private static final Pattern EMAIL_PATTERN = Pattern.compile(
+        "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$"
+    );
+    private static final Pattern ALPHANUMERIC_PATTERN = Pattern.compile("^[a-zA-Z0-9\\s\\-_\\.]+$");
+    private static final Pattern AIRCRAFT_REG_PATTERN = Pattern.compile("^[A-Z0-9-]{3,10}$");
+    private static final Pattern OPS_LINE_PATTERN = Pattern.compile("^[A-Z0-9_]{1,10}$");
+    private static final Pattern SITE_PATTERN = Pattern.compile("^[A-Z]{2,5}$");
+
+
     
     /**
      * Default constructor that initializes the entity manager and database connection
@@ -68,22 +80,21 @@ public class SlotsESlotData {
         try {
             if(this.con == null || this.con.isClosed()) {
                 this.con = DataSourceClient.getConnection();
-                logger.info("The connection was stablished successfully with status: " + String.valueOf(!this.con.isClosed()));
+                logger.info("The connection was established successfully with status: " + String.valueOf(!this.con.isClosed()));
             }
         } 
         catch (SQLException e) {
-            logger.severe("An error occured getting the status of the connection");
-            SlotsESlotController.addError(e.toString());
+            logger.severe("An error occurred getting the status of the connection");
+            SlotsESlotController.addError("DB_CONNECTION_ERROR");
         }
         catch (CustomizeHandledException e1) {
-            SlotsESlotController.addError(e1.toString());
+            SlotsESlotController.addError("DB_CONNECTION_ERROR");
         } catch (Exception e) {
-            SlotsESlotController.addError(e.toString());
+            SlotsESlotController.addError("DB_CONNECTION_ERROR");
         }
     }
         
     /**
-     * Constructor that takes a string parameter and initializes entity manager
      *
      * This simplified constructor only creates an EntityManagerFactory and gets an
      * EntityManager instance without establishing a database connection.
@@ -111,22 +122,22 @@ public class SlotsESlotData {
      */
     public String slot(ESlotItem item) throws Exception {
         
-        exceuted = "OK";
+        executed = "OK";
         
         try {
             insertSlot(item);
         }
         catch (Exception e) {
-            SlotsESlotController.addError(e.toString());
+            SlotsESlotController.addError("Slot processing failed.");
             e.printStackTrace();
             em.getTransaction().rollback();
-            exceuted = e.toString();
+            executed = e.toString();
         }
         finally {
             //clean up 
             em.clear();
         }
-        return exceuted;
+        return executed;
     }
     
     /**
@@ -158,8 +169,8 @@ public class SlotsESlotData {
             /*if (item.getEslot().getLocation() != null) {
                 if (!item.getEslot().getLocation().equals("SZB")) {
                     
-                    exceuted = "Location is not SZB, skipping processing for BMM TRAX";
-                    logger.info(exceuted);
+                    executed = "Location is not SZB, skipping processing for BMM TRAX";
+                    logger.info(executed);
                     return;
                 }
             } else {
@@ -199,9 +210,9 @@ public class SlotsESlotData {
             wo.setCustomerWo(item.getEslot().getCustomer());
             
             if (getAC(item.getEslot().getACReg()) == null) {
-                exceuted = "Can not insert/update/delete OID: "+ item.getEslot().getOid() +" as AC does not exist";
-                logger.severe(exceuted);
-                SlotsESlotController.addError(exceuted);
+                executed = "Can not insert/update/delete OID: "+ item.getEslot().getOid() +" as AC does not exist";
+                logger.severe(executed);
+                SlotsESlotController.addError(executed);
                 return;
             } else {
             	String ac = item.getEslot().getACReg();
@@ -211,9 +222,9 @@ public class SlotsESlotData {
             }
             
             if (getCategory(item.getEslot().getCheckType()) == null) {
-                exceuted = "Can not insert/update/delete OID: "+ item.getEslot().getOid() +" as Category does not exist";
-                logger.severe(exceuted);
-                SlotsESlotController.addError(exceuted);
+                executed = "Can not insert/update/delete OID: "+ item.getEslot().getOid() +" as Category does not exist";
+                logger.severe(executed);
+                SlotsESlotController.addError(executed);
                 return;
             } else {
                 wo.setWoCategory(item.getEslot().getCheckType());
@@ -246,9 +257,9 @@ public class SlotsESlotData {
                 wo.setScheduleCompletionMinute(new BigDecimal(formatMinutes.format(formatter.parse(item.getEslot().getPlannedEnd()))));
                 
             } catch (ParseException e1) {
-                exceuted = "Can not insert/update/delete OID: "+ item.getEslot().getOid() +" as ERROR: Planned Start or Planned End Date is incorrect format";
-                logger.severe(exceuted);
-                SlotsESlotController.addError(exceuted);
+                executed = "Can not insert/update/delete OID: "+ item.getEslot().getOid() +" as ERROR: Planned Start or Planned End Date is incorrect format";
+                logger.severe(executed);
+                SlotsESlotController.addError(executed);
                 return;
             }
             
@@ -317,9 +328,9 @@ public class SlotsESlotData {
                 
             } else if(item.getEslot().getAction().equalsIgnoreCase("D")) {
                 if((wo.getWorkStarted() != null && wo.getWorkStarted().equalsIgnoreCase("Y") && item.getEslot().getConfirmationStatus().equalsIgnoreCase("1"))) {
-                    exceuted = "Can not Delete OID: "+ item.getEslot().getOid() +" as ERROR: Work has started and Confirmed";
-                    logger.severe(exceuted);
-                    SlotsESlotController.addError(exceuted);
+                    executed = "Can not Delete OID: "+ item.getEslot().getOid() +" as ERROR: Work has started and Confirmed";
+                    logger.severe(executed);
+                    SlotsESlotController.addError(executed);
                     return;
                 } else {
                     if(notepad != null) {
@@ -353,15 +364,15 @@ public class SlotsESlotData {
                     insertData(wo);
                 }
             } else {
-                exceuted = "Can not insert/update/delete OID: "+ item.getEslot().getOid() +" as ERROR: ACTION is incorrect format";
-                logger.severe(exceuted);
-                SlotsESlotController.addError(exceuted);
+                executed = "Can not insert/update/delete OID: "+ item.getEslot().getOid() +" as ERROR: ACTION is incorrect format";
+                logger.severe(executed);
+                SlotsESlotController.addError(executed);
                 return;
             }
         } else {
-            exceuted = "Can not insert/update/delete OID: "+ item.getEslot().getOid() +" as ERROR: ESlot is null or item does not have minimum values";
-            logger.severe(exceuted);
-            SlotsESlotController.addError(exceuted);
+            executed = "Can not insert/update/delete OID: "+ item.getEslot().getOid() +" as ERROR: ESlot is null or item does not have minimum values";
+            logger.severe(executed);
+            SlotsESlotController.addError(executed);
             return;
         }
     }
@@ -408,14 +419,33 @@ public class SlotsESlotData {
      * @throws Exception If any database error occurs
      */
     public String setSite(String site, String opsLine, String email) throws Exception {
-        String Exceuted = "OK";
-        String query = "INSERT INTO OPS_LINE_EMAIL_MASTER (OPS_LINE, EMAIL,SITE) VALUES (?, ?, ?)";
+        String executed = "OK";
+        
+        // Input validations
+        if (!isValidSite(site)) {
+            throw new Exception("Invalid site format: " + site);
+        }
+        
+        if (!isValidOpsLine(opsLine)) {
+            throw new Exception("Invalid ops line format: " + opsLine);
+        }
+        
+        if (!isValidEmail(email)) {
+            throw new Exception("Invalid email format: " + email);
+        }
+        
+        // Sanitize inputs
+        site = site.trim().toUpperCase();
+        opsLine = opsLine.trim().toUpperCase();
+        email = email.trim().toLowerCase();
+        
+        String query = "INSERT INTO OPS_LINE_EMAIL_MASTER (OPS_LINE, EMAIL, SITE) VALUES (?, ?, ?)";
         PreparedStatement ps = null;    
         
         try {
             if(con == null || con.isClosed()) {
                 con = DataSourceClient.getConnection();
-                logger.info("The connection was stablished successfully with status: " + String.valueOf(!con.isClosed()));
+                logger.info("The connection was established successfully with status: " + String.valueOf(!con.isClosed()));
             }
             
             ps = con.prepareStatement(query);
@@ -425,7 +455,7 @@ public class SlotsESlotData {
             ps.executeUpdate();
         }
         catch (Exception e) {
-            logger.severe("An Exception occurred executing the query to set the site opsLine. " + "\n error: " + e.toString() );
+            logger.severe("An Exception occurred executing the query to set the site opsLine. " + "\n error: " + e.toString());
             throw new Exception("An Exception occurred executing the query to set the site opsLine. " + "\n error: " + e.toString());
         }
         finally {
@@ -434,10 +464,10 @@ public class SlotsESlotData {
                     ps.close();
             } 
             catch (SQLException e) { 
-                logger.severe("An error ocurrer trying to close the statement");
+                logger.severe("An error occurred trying to close the statement");
             }
         }
-        return Exceuted;
+        return executed;
     }
     
     /**
@@ -451,14 +481,23 @@ public class SlotsESlotData {
      * @throws Exception If any database error occurs
      */
     public String deleteSite(String opsline) throws Exception {
-        String Exceuted = "OK";
+        String executed = "OK";
+        
+        // Input validation
+        if (!isValidOpsLine(opsline)) {
+            throw new Exception("Invalid ops line format: " + opsline);
+        }
+        
+        // Sanitize input
+        opsline = opsline.trim().toUpperCase();
+        
         String query = "DELETE OPS_LINE_EMAIL_MASTER where OPS_LINE = ?";    
         PreparedStatement ps = null;
             
         try {    
             if(con == null || con.isClosed()) {
                 con = DataSourceClient.getConnection();
-                logger.info("The connection was stablished successfully with status: " + String.valueOf(!con.isClosed()));
+                logger.info("The connection was established successfully with status: " + String.valueOf(!con.isClosed()));
             }
             
             ps = con.prepareStatement(query);
@@ -466,7 +505,7 @@ public class SlotsESlotData {
             ps.executeUpdate();        
         }
         catch (Exception e) {
-            logger.severe("An Exception occurred executing the query to delete the site . " + "\n error: " + e.toString());
+            logger.severe("An Exception occurred executing the query to delete the site. " + "\n error: " + e.toString());
             throw new Exception("An Exception occurred executing the query to delete the site. " + "\n error: " + e.toString());
         }
         finally {
@@ -475,10 +514,10 @@ public class SlotsESlotData {
                     ps.close();
             } 
             catch (SQLException e) { 
-                logger.severe("An error ocurrer trying to close the statement");
+                logger.severe("An error occurred trying to close the statement");
             }
         }
-        return Exceuted;
+        return executed;
     }
     
     /**
@@ -494,22 +533,29 @@ public class SlotsESlotData {
     public String getSite(String opsline) throws Exception {
         ArrayList<String> groups = new ArrayList<String>();
         
-        String query = "", group = "";
-        if(opsline != null && !opsline.isEmpty()) {
-            query = " Select OPS_LINE, site, EMAIL FROM OPS_LINE_EMAIL_MASTER where OPS_LINE = ?";
-        } else {
-            query = " Select OPS_LINE, site, EMAIL FROM OPS_LINE_EMAIL_MASTER";
+        // Input validation if not null/empty
+        if (opsline != null && !opsline.trim().isEmpty() && !isValidOpsLine(opsline.trim())) {
+            throw new Exception("Invalid ops line format: " + opsline);
         }
+        
+        String query = "";
+        if(opsline != null && !opsline.trim().isEmpty()) {
+            query = "SELECT OPS_LINE, SITE, EMAIL FROM OPS_LINE_EMAIL_MASTER WHERE OPS_LINE = ?";
+            opsline = opsline.trim().toUpperCase(); // Sanitize
+        } else {
+            query = "SELECT OPS_LINE, SITE, EMAIL FROM OPS_LINE_EMAIL_MASTER";
+        }
+        
         PreparedStatement ps = null;
             
         try {
             if(con == null || con.isClosed()) {
                 con = DataSourceClient.getConnection();
-                logger.info("The connection was stablished successfully with status: " + String.valueOf(!con.isClosed()));
+                logger.info("The connection was established successfully with status: " + String.valueOf(!con.isClosed()));
             }
             
             ps = con.prepareStatement(query);
-            if(opsline != null && !opsline.isEmpty()) {
+            if(opsline != null && !opsline.trim().isEmpty()) {
                 ps.setString(1, opsline);
             }
             
@@ -517,14 +563,21 @@ public class SlotsESlotData {
             
             if (rs != null) {
                 while (rs.next()) {
-                    groups.add("Ops Line: "+rs.getString(1) + " Site: " +rs.getString(2) + " Email: " +rs.getString(3) );
+                    // Validate data obtained from database before adding
+                    String opsLineFromDb = rs.getString(1);
+                    String siteFromDb = rs.getString(2);
+                    String emailFromDb = rs.getString(3);
+                    
+                    if (opsLineFromDb != null && siteFromDb != null && emailFromDb != null) {
+                        groups.add("Ops Line: " + opsLineFromDb + " Site: " + siteFromDb + " Email: " + emailFromDb);
+                    }
                 }
             }
             rs.close();
         }
         catch (Exception e) {
             logger.severe("An Exception occurred executing the query to get the site opsLine. " + "\n error: " + e.toString());
-            throw new Exception("An Exception occurred executing the query to get the site opsLine. " + "\n error: " +  e.toString());
+            throw new Exception("An Exception occurred executing the query to get the site opsLine. " + "\n error: " + e.toString());
         }
         finally {
             try {
@@ -532,15 +585,16 @@ public class SlotsESlotData {
                     ps.close();
             } 
             catch (SQLException e) { 
-                logger.severe("An error ocurrer trying to close the statement");
+                logger.severe("An error occurred trying to close the statement");
             }
         }
         
+        StringBuilder result = new StringBuilder();
         for(String g : groups) {
-            group = group + g +"\n";
+            result.append(g).append("\n");
         }
         
-        return group;
+        return result.toString();
     }
     
     /**
@@ -560,9 +614,9 @@ public class SlotsESlotData {
             em.getTransaction().commit();
         } catch (Exception e) {
             e.printStackTrace();
-            exceuted = "insertData has encountered an Exception: "+e.toString();
-            SlotsESlotController.addError(exceuted);
-            logger.severe(exceuted);
+            executed = "insertData has encountered an Exception: "+e.toString();
+            SlotsESlotController.addError("Unable to process data. ");
+            logger.severe(executed);
         }
     }
     
@@ -582,58 +636,208 @@ public class SlotsESlotData {
                 em.remove(data);
             em.getTransaction().commit();
         } catch (Exception e) {
-            exceuted = "insertData has encountered an Exception: "+e.toString();
-            SlotsESlotController.addError(exceuted);
-            logger.severe(exceuted);
+            executed = "deleteData has encountered an Exception: "+e.toString();
+            SlotsESlotController.addError("Unable to process data.");
+            logger.severe(executed);
         }
     }
    
     /**
-     * Validates that an ESlot object contains all required fields
+     * Validates that an ESlot object contains all required fields with proper format
      *
      * Checks that all mandatory fields in the ESlot object have non-null,
-     * non-empty values before processing.
+     * non-empty values and meet format requirements before processing.
      *
      * @param eslot The ESlot object to validate
-     * @return true if all required fields are present, false otherwise
+     * @return true if all required fields are present and valid, false otherwise
      */
     private boolean checkMinValue(ESlot eslot) {
-        if(eslot.getACReg() == null || eslot.getACReg().isEmpty()) {
+        // Validate aircraft registration
+        if(eslot.getACReg() == null || eslot.getACReg().trim().isEmpty() || 
+           !isValidAircraftRegistration(eslot.getACReg().trim())) {
+            logger.severe("Invalid aircraft registration: " + eslot.getACReg());
             return false;
         }
             
-        if(eslot.getCustomer() == null || eslot.getCustomer().isEmpty()) {
+        // Validate customer
+        if(eslot.getCustomer() == null || eslot.getCustomer().trim().isEmpty() || 
+           !isValidAlphanumeric(eslot.getCustomer().trim()) || 
+           eslot.getCustomer().trim().length() > 50) {
+            logger.severe("Invalid customer: " + eslot.getCustomer());
             return false;
         }
             
-        if(eslot.getCheckType() == null || eslot.getCheckType().isEmpty()) {
+        // Validate check type
+        if(eslot.getCheckType() == null || eslot.getCheckType().trim().isEmpty() || 
+           !isValidAlphanumeric(eslot.getCheckType().trim()) || 
+           eslot.getCheckType().trim().length() > 10) {
+            logger.severe("Invalid check type: " + eslot.getCheckType());
             return false;
         }
             
-        if(eslot.getPlannedStart() == null || eslot.getPlannedStart().isEmpty()) {
+        // Validate planned start date
+        if(eslot.getPlannedStart() == null || eslot.getPlannedStart().trim().isEmpty() || 
+           !isValidDateFormat(eslot.getPlannedStart().trim())) {
+            logger.severe("Invalid planned start date: " + eslot.getPlannedStart());
             return false;
         }
             
-        if(eslot.getPlannedEnd() == null || eslot.getPlannedEnd().isEmpty()) {
+        // Validate planned end date
+        if(eslot.getPlannedEnd() == null || eslot.getPlannedEnd().trim().isEmpty() || 
+           !isValidDateFormat(eslot.getPlannedEnd().trim())) {
+            logger.severe("Invalid planned end date: " + eslot.getPlannedEnd());
             return false;
         }
             
-        if(eslot.getAction() == null || eslot.getAction().isEmpty()) {
+        // Validate action (only I, U, D allowed)
+        if(eslot.getAction() == null || eslot.getAction().trim().isEmpty() || 
+           !eslot.getAction().trim().matches("^[IUD]$")) {
+            logger.severe("Invalid action: " + eslot.getAction());
             return false;
         }
             
-        if(eslot.getOid() == null || eslot.getOid().isEmpty()) {
+        // Validate OID
+        if(eslot.getOid() == null || eslot.getOid().trim().isEmpty() || 
+           !isValidAlphanumeric(eslot.getOid().trim()) || 
+           eslot.getOid().trim().length() > 20) {
+            logger.severe("Invalid OID: " + eslot.getOid());
             return false;
         }
             
-        if(eslot.getConfirmationStatus() == null || eslot.getConfirmationStatus().isEmpty()) {
+        // Validate confirmation status (only 0 or 1)
+        if(eslot.getConfirmationStatus() == null || eslot.getConfirmationStatus().trim().isEmpty() || 
+           !eslot.getConfirmationStatus().trim().matches("^[01]$")) {
+            logger.severe("Invalid confirmation status: " + eslot.getConfirmationStatus());
             return false;
         }
-        if(eslot.getLine() == null || eslot.getLine().isEmpty()) {
+        
+        // Validate line
+        if(eslot.getLine() == null || eslot.getLine().trim().isEmpty() || 
+           !isValidOpsLine(eslot.getLine().trim())) {
+            logger.severe("Invalid line: " + eslot.getLine());
+            return false;
+        }
+        
+        // Additional validation: verify that planned start is before planned end
+        if(!isStartDateBeforeEndDate(eslot.getPlannedStart().trim(), eslot.getPlannedEnd().trim())) {
+            logger.severe("Planned start date must be before planned end date");
             return false;
         }
             
         return true;
+    }
+    
+    /**
+     * Validates aircraft registration format
+     *
+     * @param registration The aircraft registration to validate
+     * @return true if valid, false otherwise
+     */
+    private boolean isValidAircraftRegistration(String registration) {
+        if (registration == null || registration.length() < 3 || registration.length() > 10) {
+            return false;
+        }
+        return AIRCRAFT_REG_PATTERN.matcher(registration.toUpperCase()).matches();
+    }
+    
+    /**
+     * Validates alphanumeric input with safe special characters
+     *
+     * @param input The input string to validate
+     * @return true if valid, false otherwise
+     */
+    private boolean isValidAlphanumeric(String input) {
+        if (input == null || input.isEmpty()) {
+            return false;
+        }
+        // Allow letters, numbers and some safe special characters
+        return ALPHANUMERIC_PATTERN.matcher(input).matches();
+    }
+    
+    /**
+     * Validates operations line format
+     *
+     * @param opsLine The operations line to validate
+     * @return true if valid, false otherwise
+     */
+    private boolean isValidOpsLine(String opsLine) {
+        if (opsLine == null || opsLine.length() > 10) {
+            return false;
+        }
+        return OPS_LINE_PATTERN.matcher(opsLine.toUpperCase()).matches();
+    }
+    
+    /**
+     * Validates date format and range
+     *
+     * @param dateStr The date string to validate
+     * @return true if valid, false otherwise
+     */
+    private boolean isValidDateFormat(String dateStr) {
+        if (dateStr == null || dateStr.trim().isEmpty()) {
+            return false;
+        }
+        
+        try {
+            // Validate expected format dd-MMM-yy HH:mm:ss
+            SimpleDateFormat formatter = new SimpleDateFormat("dd-MMM-yy HH:mm:ss", Locale.ENGLISH);
+            formatter.setLenient(false); // Strict mode
+            Date parsedDate = formatter.parse(dateStr.trim());
+            
+            // Validate that date is not too old (more than 10 years ago) 
+            // nor too far in the future (more than 5 years ahead)
+            Date now = new Date();
+            long tenYearsAgo = now.getTime() - (10L * 365 * 24 * 60 * 60 * 1000);
+            long fiveYearsLater = now.getTime() + (5L * 365 * 24 * 60 * 60 * 1000);
+            
+            return parsedDate.getTime() >= tenYearsAgo && parsedDate.getTime() <= fiveYearsLater;
+        } catch (ParseException e) {
+            return false;
+        }
+    }
+    
+    /**
+     * Validates that start date is before end date
+     *
+     * @param startDate The start date string
+     * @param endDate The end date string
+     * @return true if start is before end, false otherwise
+     */
+    private boolean isStartDateBeforeEndDate(String startDate, String endDate) {
+        try {
+            SimpleDateFormat formatter = new SimpleDateFormat("dd-MMM-yy HH:mm:ss", Locale.ENGLISH);
+            Date start = formatter.parse(startDate);
+            Date end = formatter.parse(endDate);
+            return start.before(end);
+        } catch (ParseException e) {
+            return false;
+        }
+    }
+    
+    /**
+     * Validates email format
+     *
+     * @param email The email to validate
+     * @return true if valid, false otherwise
+     */
+    private boolean isValidEmail(String email) {
+        if (email == null || email.trim().isEmpty() || email.length() > 254) {
+            return false;
+        }
+        return EMAIL_PATTERN.matcher(email.trim()).matches();
+    }
+    
+    /**
+     * Validates site format
+     *
+     * @param site The site code to validate
+     * @return true if valid, false otherwise
+     */
+    private boolean isValidSite(String site) {
+        if (site == null || site.length() < 2 || site.length() > 5) {
+            return false;
+        }
+        return SITE_PATTERN.matcher(site.toUpperCase()).matches();
     }
     
     /**
@@ -682,6 +886,12 @@ public class SlotsESlotData {
         return " ";
     }
     
+    /**
+     * Retrieves aircraft type for a given aircraft registration
+     *
+     * @param AC The aircraft registration
+     * @return The aircraft type or empty string if not found
+     */
     private String getAcType(String AC) {
         try {
             AcMaster acMaster = em.createQuery("Select a From AcMaster a where a.id.ac = :airC", AcMaster.class)
@@ -691,11 +901,17 @@ public class SlotsESlotData {
             return acMaster.getAcType(); 
         }
         catch (Exception e) {
-            
+            // Silent exception handling
         }
         return "";
     }
 
+    /**
+     * Retrieves aircraft series for a given aircraft registration
+     *
+     * @param AC The aircraft registration
+     * @return The aircraft series or empty string if not found
+     */
     private String getAcSeries(String AC) {
         try {
             AcMaster acMaster = em.createQuery("Select a From AcMaster a where a.id.ac = :airC", AcMaster.class)
@@ -705,7 +921,7 @@ public class SlotsESlotData {
             return acMaster.getAcSeries(); 
         }
         catch (Exception e) {
-            
+            // Silent exception handling
         }
         return "";
     }
@@ -746,14 +962,28 @@ public class SlotsESlotData {
      * @throws Exception If any database error occurs
      */
     public String updateOpsLine(String site, String opsLine) throws Exception {
-        String Exceuted = "OK";
+        String executed = "OK";
+        
+        // Input validations
+        if (!isValidSite(site)) {
+            throw new Exception("Invalid site format: " + site);
+        }
+        
+        if (!isValidOpsLine(opsLine)) {
+            throw new Exception("Invalid ops line format: " + opsLine);
+        }
+        
+        // Sanitize inputs
+        site = site.trim().toUpperCase();
+        opsLine = opsLine.trim().toUpperCase();
+        
         String query = "UPDATE OPS_LINE_EMAIL_MASTER SET SITE = ? WHERE OPS_LINE = ?";
         PreparedStatement ps = null;    
         
         try {
             if(con == null || con.isClosed()) {
                 con = DataSourceClient.getConnection();
-                logger.info("The connection was stablished successfully with status: " + String.valueOf(!con.isClosed()));
+                logger.info("The connection was established successfully with status: " + String.valueOf(!con.isClosed()));
             }
             
             ps = con.prepareStatement(query);
@@ -762,7 +992,7 @@ public class SlotsESlotData {
             ps.executeUpdate();
         }
         catch (Exception e) {
-            logger.severe("An Exception occurred executing the query to update the site opsLine. " + "\n error: " + e.toString() );
+            logger.severe("An Exception occurred executing the query to update the site opsLine. " + "\n error: " + e.toString());
             throw new Exception("An Exception occurred executing the query to update the site opsLine. " + "\n error: " + e.toString());
         }
         finally {
@@ -771,10 +1001,10 @@ public class SlotsESlotData {
                     ps.close();
             } 
             catch (SQLException e) { 
-                logger.severe("An error ocurrer trying to close the statement");
+                logger.severe("An error occurred trying to close the statement");
             }
         }
-        return Exceuted;
+        return executed;
     }
     
     /**
@@ -864,7 +1094,7 @@ public class SlotsESlotData {
             locationMaster = em.createQuery("SELECT l FROM LocationMaster l WHERE l.location = :loc", LocationMaster.class)
             .setParameter("loc", loc)
             .getSingleResult();
-            if(locationMaster.getMaintenanceFacility() != null && !locationMaster.getMaintenanceFacility() .isEmpty() && locationMaster.getMaintenanceFacility() .equalsIgnoreCase("Y")) {
+            if(locationMaster.getMaintenanceFacility() != null && !locationMaster.getMaintenanceFacility().isEmpty() && locationMaster.getMaintenanceFacility().equalsIgnoreCase("Y")) {
                 return true;
             } else {
                 return false;
@@ -950,4 +1180,4 @@ public class SlotsESlotData {
         em.merge(lock);
         em.getTransaction().commit();
     }
- }
+}
