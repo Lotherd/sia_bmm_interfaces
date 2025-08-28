@@ -7,7 +7,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.logging.Logger;
 
-import trax.aero.Encryption.Encryption;
 import trax.aero.Encryption.PGPEncryption;
 import trax.aero.data.ShiftInfoData;
 import trax.aero.logger.LogManager;
@@ -28,7 +27,7 @@ public class RunAble implements Runnable {
     /**
      * Generates the EmployeeSchedule file
      * This method retrieves employee schedule data from the database, formats it into a 
-     * semicolon-delimited text file, and optionally encrypts the output based on system configuration
+     * semicolon-delimited text file, and optionally encrypts the output using PGP
      */
     private void generateEmployeeScheduleFile() {
         try {
@@ -77,7 +76,7 @@ public class RunAble implements Runnable {
             
 
             if (Boolean.parseBoolean(System.getProperty("ShiftInfo_encryptOutput", "false"))) {
-                encryptFile(outputFile);
+                encryptFilePGP(outputFile);
             }
             
             logger.info("Successfully exported " + shifts.size() + " employee schedule records to " + outputFile.getAbsolutePath());
@@ -177,7 +176,7 @@ public class RunAble implements Runnable {
             
            
             if (Boolean.parseBoolean(System.getProperty("ShiftInfo_encryptOutput", "false"))) {
-                encryptFile(outputFile);
+                encryptFilePGP(outputFile);
             }
             
             logger.info("Successfully exported " + shifts.size() + " shift pattern records to " + outputFile.getAbsolutePath());
@@ -210,27 +209,56 @@ public class RunAble implements Runnable {
     }
     
     /**
-     * Encrypts the generated file using the configured encryption method
-     * Creates an encrypted version with .enc extension and removes the original file
+     * Encrypts the generated file using PGP encryption
+     * Creates an encrypted version with .pgp extension and removes the original file
      * 
      * @param file The file to encrypt
      * @throws Exception If encryption process fails
      */
-    private void encryptFile(File file) throws Exception {
+    private void encryptFilePGP(File file) throws Exception {
         try {
-            logger.info("Encrypting file " + file.getName());
+            logger.info("Encrypting file with PGP: " + file.getName());
             
-            File encryptedFile = new File(file.getAbsolutePath() + ".enc");
+            // Get PGP configuration from system properties
+            String publicKeyFile = System.getProperty("ShiftInfo_pgpPublicKey");
+            boolean useArmor = Boolean.parseBoolean(System.getProperty("ShiftInfo_pgpArmor", "true"));
             
-            
-            Encryption.encryptFile(file, encryptedFile);
-            
-            if (encryptedFile.exists()) {
-                file.delete();
-                logger.info("File successfully encrypted: " + encryptedFile.getAbsolutePath());
+            if (publicKeyFile == null || publicKeyFile.trim().isEmpty()) {
+                throw new Exception("PGP public key file not specified. Set ShiftInfo_pgpPublicKey system property.");
             }
+            
+            File keyFile = new File(publicKeyFile);
+            if (!keyFile.exists()) {
+                throw new Exception("PGP public key file not found: " + publicKeyFile);
+            }
+            
+            // Create encrypted file with .pgp extension
+            String encryptedFileName = file.getAbsolutePath() + ".pgp";
+            File encryptedFile = new File(encryptedFileName);
+            
+            // Encrypt using PGP
+            PGPEncryption.encryptFile(
+                file.getAbsolutePath(),    // input file
+                encryptedFileName,         // output file
+                publicKeyFile,             // public key file
+                useArmor                   // armor (ASCII format)
+            );
+            
+            // Verify encrypted file was created successfully
+            if (encryptedFile.exists() && encryptedFile.length() > 0) {
+                // Delete original file
+                if (file.delete()) {
+                    logger.info("Original file deleted after successful PGP encryption");
+                } else {
+                    logger.warning("Could not delete original file: " + file.getAbsolutePath());
+                }
+                logger.info("File successfully encrypted with PGP: " + encryptedFile.getAbsolutePath());
+            } else {
+                throw new Exception("PGP encryption failed - encrypted file was not created or is empty");
+            }
+            
         } catch (Exception e) {
-            logger.severe("Error encrypting file: " + e.toString());
+            logger.severe("Error encrypting file with PGP: " + e.toString());
             throw e;
         }
     }
